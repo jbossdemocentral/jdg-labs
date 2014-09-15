@@ -16,6 +16,8 @@ import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.eviction.EvictionStrategy;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.transaction.LockingMode;
+import org.infinispan.transaction.TransactionMode;
 import org.jboss.infinispan.demo.model.Task;
 
 /**
@@ -52,6 +54,7 @@ public class Config {
 			Configuration loc = new ConfigurationBuilder().jmxStatistics()
 					.enable() // Enable JMX statistics
 					.eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+					.transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
 					.indexing()
 						.enable()
 						.indexLocalOnly(false)
