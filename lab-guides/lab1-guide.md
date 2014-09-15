@@ -67,6 +67,8 @@ To assist with setting up the lab environment we have provided a shell script th
 
 		$ mvn -P arquillian-jbossas-remote-7 test
 		
+	The test should FAIL because 1000 reads on H2 data base takes longer than 400ms. Using JBoss Data Grid we should be able to do 1000 reads well under 400 ms. 	
+		
 1. Build and deploy the project
 
         $ mvn package jboss-as:deploy
