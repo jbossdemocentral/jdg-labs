@@ -30,21 +30,78 @@ To meet the predicted increase we have a accouple of options:
  
 ## Step-by-Step
 1. Discussion pros and cons with different options for solution to the memory usage issue
-2. Setup of a standalone node, but running the init-lab.sh for lab4
+2. Setup of a standalone node, but running the init-lab.sh for lab5
 
 		$ ./init-lab.sh --lab=5
 		
-3. Setup development dependencies
-4. Setup runtime dependencies
-5. Update the Config class and TaskService to use RemoteCache instead of Cache.
-6. Configure a cache in JDG server. 
-7. Start the JDG server (and EAP if not already started)
+3. Configure the cache in the JDG Server, Open `target/jboss-datagrid-6.3.0-server/standalone/configuration/standalone.xml` and add the following to the `infinispan:server:core` subsystem inside the `cache-container` named `local`:
 
-		$ ./target/xxx/bin/standalone.sh
+		<local-cache name="tasks" start="EAGER">
+			<locking isolation="NONE" acquire-timeout="30000" concurrency-level="1000" striping="false"/>
+			<transaction mode="NONE"/>
+		</local-cache>
 		
-8. Run the arquillian tests to verify that the application.
-9. Deploy the application.
-10. Congratulations you are done with lab 5.
+4. Start the JDG server (and EAP if not already started)
+
+		$ target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+		$ target/jboss-eap-6.3/bin/standalone.sh 
+
+5. Setup development and runtime dependencies by adding `infinispan-client-hotrod` and `infinispan-commons` as dependencies in pom.xml
+
+	_Note:_ Because of a known bug for HotRod modules we will note use the EAP modules for HotRod. Instead we are going to ship the libraries in WEB-INF/lib by setting scope compile instead of scope provided.
+	
+6. Write CDI producers in the `org.jboss.infinispan.demo.Config`:
+
+		@Produces
+		public RemoteCache<Long, Task> getRemoteCache() {
+			ConfigurationBuilder builder = new ConfigurationBuilder();
+			builder.addServer().host("localhost").port(11322);
+			return new RemoteCacheManager(builder.build(), true).getCache("tasks");
+		}
+
+7. Implement the following methods and field in the TaskService class
+
+	Field cache should look like this
+	
+		@Inject
+		RemoteCache<Long, Task> cache;
+	
+	TaskService.findAll(), should look like this
+		
+		public Collection<Task> findAll() {
+			return cache.getBulk().values();
+		}
+	
+	TaskService.insert(Task), should look like this
+	
+		public void insert(Task task) {
+			if(task.getCreatedOn()==null) {
+				task.setCreatedOn(new Date());
+			}
+			int nextKey = cache.size() + 1;
+			task.setId(new Long(nextKey));
+			cache.putIfAbsent(task.getId(), task);
+		}
+		
+	TaskService.update(Task), should look like this
+	
+		public void update(Task task) {
+			cache.replace(task.getId(), task);			
+		}
+	
+	TaskService.delete(Task), should look like this
+	
+		public void delete(Task task) {
+			this.delete(task.getId());
+		}
+	
+		
+9. Run the arquillian tests to verify that the application.
+10. Deploy the application.
+
+	$ mvn clean package jboss-as:deploy
+	
+11. Verify that everything works by opening a browser to [http://localhost:8080/todo](http://localhost:8080/todo)
 
 
 

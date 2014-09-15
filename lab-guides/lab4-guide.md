@@ -308,11 +308,25 @@ Rewrite the application to only use JDG library mode, configure a file store and
 			
 9. Run the JUnit test again to verify your changes
 
-10. Deploy the application and test that everything works as before.
+10. Setup a EAP nodes using clustered JDG
 
-		mvn clean package jboss-as:deploy
+		$ sh init-lab.sh --lab=4
 		
-11. Congratulations you are done with lab 4
+11. Start the first node using
 
+		$ target/node1/jboss-eap-6.3/bin/standalone.sh -Djgroups.bind_addr=0.0.0.0 -Djboss.node.name=jdg-1
+		
+12. Start the second node using port offset
 
+		$ target/node2/jboss-eap-6.3/bin/standalone.sh -Djgroups.bind_addr=0.0.0.0 -Djboss.node.name=jdg-2 -Djboss.socket.binding.port-offset=100 
+		
+13. Deploy the application and test that everything works as before.
 
+		$ cd projects/lab4
+		$ mvn clean package 
+		$ mvn jboss-as:deploy
+		$ mvn jboss-as:deploy -Djboss-as.port=10099
+		
+14. Open two browser windows, one to [http://localhost:8080/todo](http://localhost:8080/todo) and another to [http://localhost:8180/todo](http://localhost:8180/todo). Verify that you can add content in one window and that they appear when you reload the other window.
+
+15. Congratulation you are finished with lab 4

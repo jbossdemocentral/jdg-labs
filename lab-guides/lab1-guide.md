@@ -370,4 +370,4 @@ Then we put this class somewhere in our classpath (or even better in our source)
 		
 1. Test the application by opening a browser window to [http://localhost:8080/todo]()
 
-1. Congratulations you are done with lab1.
+1. Congratulations you are done with lab1. If you finished early try to add transactional behaviour the the cache or look at the solution for more info.

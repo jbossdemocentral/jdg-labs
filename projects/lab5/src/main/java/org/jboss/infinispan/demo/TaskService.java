@@ -23,7 +23,7 @@ public class TaskService {
 	 * This methods should return all cache entries
 	 * @return
 	 * 
-	 * FIXME: query the cache for all keys and then iterate over the keys into a ArrayList and return the list
+	 * FIXME: Run a bulk get operation against the remote cache and retrieve all values 
 	 */
 	public Collection<Task> findAll() {
 		
@@ -34,13 +34,14 @@ public class TaskService {
 	 * This method should insert a new task object into the grid. You will have to create a unique id for the task.
 	 * @param task
 	 * 
+	 * FIXME: If the new task doesn't have a createdOn date (UI issue) we add the current date of now
 	 * FIXME: Create a unique id by querying for the size of the cache (RemoteCache.size()) and increment by one.
 	 * FIXME: Put the object into the grid via RemoteCache.putIfAbsent(Object key, Object value) 
 	 * 
 	 * NOTE: Using the Id field from the model as key is actually a rest from the JPA model, a better way would be to create a unique id baste on for example user, title and creation date)
 	 */
 	public void insert(Task task) {
-		throw new RuntimeException("The metod TaskService.findAll(Task) is not implemented yet");
+		throw new RuntimeException("The metod TaskService.insert(Task) is not implemented yet");
 	}
 
 	/**
@@ -48,10 +49,10 @@ public class TaskService {
 	 * One way to solve this would be to store the hotrod version of the object in the actual object and use RemoteCache.replaceWithVersion(...) and handle a failed update in the UI, but for this application we are happy with overriding.
 	 * @param task
 	 * 
-	 * FIXME: Replace the implementation with RemoteCache.put(Long, Task)
+	 * FIXME: Replace the implementation with RemoteCache.replace(Long, Task)
 	 */
 	public void update(Task task) {
-		throw new RuntimeException("The metod TaskService.findAll() is not implemented yet");
+		throw new RuntimeException("The metod TaskService.update(Task) is not implemented yet");
 	}
 	
 	/**
@@ -72,7 +73,7 @@ public class TaskService {
 	 * 
 	 */
 	public void delete(Long id) {
-		throw new RuntimeException("The metod TaskService.findAll() is not implemented yet");
+		throw new RuntimeException("The metod TaskService.delete(Long) is not implemented yet");
 	}
 	
 	

@@ -7,11 +7,12 @@ import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
 import org.infinispan.distexec.mapreduce.MapReduceTask;
+import org.jboss.infinispan.demo.mapreduce.CountReducer;
 import org.jboss.infinispan.demo.mapreduce.UserBrowserVendorCountMapper;
 import org.jboss.infinispan.demo.mapreduce.UserOSCountMapper;
-import org.jboss.infinispan.demo.mapreduce.CountReducer;
 
 @Stateless
 public class BIService {
@@ -25,7 +26,6 @@ public class BIService {
 	
 	
 	@Inject
-	@RequestCache
 	Cache<Long,String> requestCache;
 	
 	Logger log = Logger.getLogger(this.getClass().getName());

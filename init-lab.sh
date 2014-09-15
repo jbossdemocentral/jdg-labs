@@ -84,7 +84,7 @@ function setup_eap_with_modules() {
 	echo Unpacking new JBoss Enterprise EAP 6...
 	echo
 		
-	unzip -q -d ${EXTRACT_DIR} $SRC_DIR/$EAP_SERVER
+	unzip -q -o -d ${EXTRACT_DIR} $SRC_DIR/$EAP_SERVER
 
 	# Creating and admin user with admin-123 as password
 	echo "Adding admin user"
@@ -123,8 +123,7 @@ function setup_eap_node_with_modules() {
 }
 
 
-function setup_jdg_node_one() {
-	# make some checks first before proceeding.	
+function setup_jdg_server() {
 	DOWNLOADS=($JDG_SERVER)
 
 	for DONWLOAD in ${DOWNLOADS[@]}
@@ -140,66 +139,20 @@ function setup_jdg_node_one() {
 		fi
 	done
 
-	if [ -x ${JDG_ONE_HOME} ]; then
+	if [ -x ${JDG_HOME} ]; then
 		echo "  - existing JBoss Data Grid detected..."
 		echo
 		echo "  - moving existing JBoss Data Grid aside..."
 		echo
-		rm -rf ${JDG_ONE_HOME}.OLD
-		mv ${JDG_ONE_HOME} ${JDG_ONE_HOME}.OLD
+		rm -rf ${JDG_HOME}.OLD
+		mv ${JDG_HOME} ${JDG_HOME}.OLD
 	fi
 	# Unzip the JBoss DG instance.
 	echo Unpacking new JBoss Data Grid instance...
 	
-	tmpdir=`mktemp -d XXXXXXXX`
-	
 	echo
-	unzip -q -d $tmpdir ${SRC_DIR}/${JDG_SERVER}
-	
-	mv ${tmpdir}/jboss-datagrid-6.3.0-server ${JDG_ONE_HOME}
-	
-	rm -rf  ${tmpdir}  
-	
+	unzip -q -o -d target ${SRC_DIR}/${JDG_SERVER}
 	echo "Done setting up JDG Server Node One"
-}
-
-function setup_jdg_node_two() {
-	DOWNLOADS=($JDG_SERVER)
-
-	for DONWLOAD in ${DOWNLOADS[@]}
-	do
-		if [[ -r $SRC_DIR/$DONWLOAD || -L $SRC_DIR/$DONWLOAD ]]; then
-				echo $DONWLOAD are present...
-				echo
-		else
-				echo You need to download $DONWLOAD from the Customer Support Portal 
-				echo and place it in the $SRC_DIR directory to proceed...
-				echo
-				exit
-		fi
-	done
-
-	if [ -x ${JDG_TWO_HOME} ]; then
-		echo "  - existing JBoss Data Grid detected..."
-		echo
-		echo "  - moving existing JBoss Data Grid aside..."
-		echo
-		rm -rf ${JDG_TWO_HOME}.OLD
-		mv ${JDG_TWO_HOME} ${JDG_TWO_HOME}.OLD
-	fi
-	# Unzip the JBoss DG instance.
-	echo Unpacking new JBoss Data Grid instance...
-	
-	tmpdir=`mktemp -d XXXXXXXX`
-	
-	echo
-	unzip -q -d $tmpdir ${SRC_DIR}/${JDG_SERVER}
-	
-	mv ${tmpdir}/jboss-datagrid-6.3.0-server ${JDG_TWO_HOME}
-	
-	rm -rf  ${tmpdir}  
-	
-	echo "Done setting up JDG Server Node Two"
 }
 
 #### Start the script
@@ -266,9 +219,9 @@ case "${LAB_TO_SETUP}" in
 		setup_eap_node_with_modules node1
 		setup_eap_node_with_modules node2
 		;;
-	5)
+	5|6)
 		setup_eap_with_modules
-		setup_jdg_node_one
+		setup_jdg_server
 		;;
 	*)
 		echo "Unsupported lab"

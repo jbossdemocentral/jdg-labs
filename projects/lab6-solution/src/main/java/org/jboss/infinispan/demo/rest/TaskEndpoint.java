@@ -18,7 +18,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.infinispan.Cache;
-import org.jboss.infinispan.demo.RequestCache;
 import org.jboss.infinispan.demo.TaskService;
 import org.jboss.infinispan.demo.model.Task;
 
@@ -34,7 +33,6 @@ public class TaskEndpoint {
 	TaskService taskService;
 	
 	@Inject
-	@RequestCache
 	private Cache<Long, String> requestCache;
 
 	Logger log = Logger.getLogger(this.getClass().getName());
@@ -58,17 +56,6 @@ public class TaskEndpoint {
 		requestCache.putAsync(System.nanoTime(),
 				headers.getRequestHeader("user-agent").get(0));
 		return taskService.findAll();
-	}
-
-	
-	@GET
-	@Produces("application/json")
-	@Path("/filter/{value}")
-	public Collection<Task> filter(@PathParam("value") String value,
-			@Context HttpHeaders headers) {
-		requestCache.putAsync(System.nanoTime(),
-				headers.getRequestHeader("user-agent").get(0));
-		return taskService.filter(value);
 	}
 
 	@PUT

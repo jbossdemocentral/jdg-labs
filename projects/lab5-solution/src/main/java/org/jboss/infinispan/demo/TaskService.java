@@ -1,9 +1,7 @@
 package org.jboss.infinispan.demo;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
@@ -17,8 +15,7 @@ import org.jboss.infinispan.demo.model.Task;
 public class TaskService {
 	
 	static Logger log = Logger.getLogger(TaskService.class.getName());
-
-	//DONE: 1. Inject a RemoteCache object (needs to be produced in the Config class)
+	
 	@Inject
 	RemoteCache<Long, Task> cache;
 
@@ -26,16 +23,10 @@ public class TaskService {
 	 * This methods should return all cache entries
 	 * @return
 	 * 
-	 * DONE: query the cache for all keys and then iterate over the keys and place the values into a ArrayList and return the list
+	 * DONE: Run a bulk get operation against the remote cache and retrieve all values 
 	 */
 	public Collection<Task> findAll() {
-		Set<Long> keySet = cache.keySet();
-		ArrayList<Task> tasks = new ArrayList<Task>();
-		for (Long key : keySet) {
-			Task task = cache.get(key);
-			tasks.add(task);
-		}
-		return tasks;
+		return cache.getBulk().values();
 	}
 	
 	/**
@@ -62,10 +53,10 @@ public class TaskService {
 	 * One way to solve this would be to store the hotrod version of the object in the actual object and use RemoteCache.replaceWithVersion(...) and handle a failed update in the UI, but for this application we are happy with overriding.
 	 * @param task
 	 * 
-	 * DONE: Replace the implementation with RemoteCache.put(Long, Task)
+	 * DONE: Replace the implementation with RemoteCache.replace(Long, Task)
 	 */	
 	public void update(Task task) {
-		cache.put(task.getId(), task);
+		cache.replace(task.getId(), task);
 			
 	}
 	

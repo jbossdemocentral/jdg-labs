@@ -22,6 +22,7 @@ import org.jboss.infinispan.demo.model.Task;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,20 +45,21 @@ public class TaskServiceTest {
 
 	@Deployment
 	public static WebArchive createDeployment() {
-
+		File[] jars = Maven.resolver()
+				.loadPomFromFile("pom.xml")
+				.importRuntimeDependencies()
+				.resolve().withTransitivity()
+				.asFile();
+		
 		return ShrinkWrap
 				.create(WebArchive.class, "todo-test.war")
 				.addClass(Config.class)
 				.addClass(Task.class)
 				.addClass(TaskService.class)
-				.addClass(RequestCache.class)
 				.addClass(BIService.class)
 				.addClass(UserOSCountMapper.class)
 				.addClass(CountReducer.class)
-				.addAsResource("jgroups-udp.xml")
-				.addAsWebInfResource(
-						new File(
-								"src/main/webapp/WEB-INF/jboss-deployment-structure.xml"))
+				.addAsLibraries(jars)
 				.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}
 
@@ -114,29 +116,6 @@ public class TaskServiceTest {
 		Assert.assertEquals(orgsize, taskservice.findAll().size());
 	}
 
-	@Test
-	@InSequence(5)
-	public void testFilterTask() {
-		Task t1 = generateTestTasks("Sell EAP to customer A", false);
-		Task t2 = generateTestTasks("Get FeedBack from EAP customers", false);
-		Task t3 = generateTestTasks("Get FeedBack from JDG custoers", true);
-		Task t4 = generateTestTasks("Sell JDG to customer B", false);
-		Task t5 = generateTestTasks("Pickup kids from daycare", false);
-
-		Collection<Task> tasks = taskservice.filter("EAP");
-		Assert.assertEquals(2, tasks.size());
-		tasks = taskservice.filter("SELL");
-		Assert.assertEquals(2, tasks.size());
-		tasks = taskservice.filter("FeedBack");
-		Assert.assertEquals(2, tasks.size());
-
-		taskservice.delete(t1);
-		taskservice.delete(t2);
-		taskservice.delete(t3);
-		taskservice.delete(t4);
-		taskservice.delete(t5);
-	}
-
 
 //	@Test
 //	@InSequence(6)
@@ -160,16 +139,5 @@ public class TaskServiceTest {
 //		Assert.assertEquals(2, userOsCount.get("Android").intValue());
 //		Assert.assertEquals(2, userOsCount.get("iPhone").intValue());
 //	}
-
-	private Task generateTestTasks(String title, boolean done) {
-		Task task = new Task();
-		task.setTitle(title);
-		if (done) {
-			task.setCompletedOn(new Date());
-			task.setDone(true);
-		}
-		taskservice.insert(task);
-		return task;
-	}
 
 }

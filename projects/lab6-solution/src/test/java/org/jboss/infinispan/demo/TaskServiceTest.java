@@ -10,18 +10,19 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
-import org.infinispan.distexec.mapreduce.MapReduceTask;
 import org.infinispan.util.concurrent.NotifyingFuture;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
-import org.jboss.infinispan.demo.mapreduce.UserOSCountMapper;
 import org.jboss.infinispan.demo.mapreduce.CountReducer;
+import org.jboss.infinispan.demo.mapreduce.UserOSCountMapper;
 import org.jboss.infinispan.demo.model.Task;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,25 +40,26 @@ public class TaskServiceTest {
 	private BIService biservice;
 
 	@Inject
-	@RequestCache
-	private Cache<Long, String> requestCache;
+	private AdvancedCache<Long, String> requestCache;
 
 	@Deployment
 	public static WebArchive createDeployment() {
+		File[] jars = Maven.resolver()
+				.loadPomFromFile("pom.xml")
+				.importRuntimeDependencies()
+				.resolve().withTransitivity()
+				.asFile();
 
 		return ShrinkWrap
 				.create(WebArchive.class, "todo-test.war")
 				.addClass(Config.class)
 				.addClass(Task.class)
 				.addClass(TaskService.class)
-				.addClass(RequestCache.class)
 				.addClass(BIService.class)
 				.addClass(UserOSCountMapper.class)
 				.addClass(CountReducer.class)
 				.addAsResource("jgroups-udp.xml")
-				.addAsWebInfResource(
-						new File(
-								"src/main/webapp/WEB-INF/jboss-deployment-structure.xml"))
+				.addAsLibraries(jars)
 				.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}
 
@@ -115,32 +117,9 @@ public class TaskServiceTest {
 	}
 
 	@Test
-	@InSequence(5)
-	public void testFilterTask() {
-		Task t1 = generateTestTasks("Sell EAP to customer A", false);
-		Task t2 = generateTestTasks("Get FeedBack from EAP customers", false);
-		Task t3 = generateTestTasks("Get FeedBack from JDG custoers", true);
-		Task t4 = generateTestTasks("Sell JDG to customer B", false);
-		Task t5 = generateTestTasks("Pickup kids from daycare", false);
-
-		Collection<Task> tasks = taskservice.filter("EAP");
-		Assert.assertEquals(2, tasks.size());
-		tasks = taskservice.filter("SELL");
-		Assert.assertEquals(2, tasks.size());
-		tasks = taskservice.filter("FeedBack");
-		Assert.assertEquals(2, tasks.size());
-
-		taskservice.delete(t1);
-		taskservice.delete(t2);
-		taskservice.delete(t3);
-		taskservice.delete(t4);
-		taskservice.delete(t5);
-	}
-
-
-	@Test
 	@InSequence(6)
 	public void testRequestCache() throws InterruptedException, ExecutionException {		
+		int initialSize = requestCache.size();
 		ArrayList<NotifyingFuture<String>> futures = new ArrayList<NotifyingFuture<String>>();
 		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
 		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
@@ -152,7 +131,7 @@ public class TaskServiceTest {
 		for (NotifyingFuture<String> notifyingFuture : futures) {
 			notifyingFuture.get();
 		}
-		Assert.assertEquals(7, requestCache.size());
+		Assert.assertEquals(initialSize+7, requestCache.size());
 		
 		Map<String,Integer> userOsCount = biservice.getRequestStatiscsPerOs();
 		
@@ -160,16 +139,4 @@ public class TaskServiceTest {
 		Assert.assertEquals(2, userOsCount.get("Android").intValue());
 		Assert.assertEquals(2, userOsCount.get("iPhone").intValue());
 	}
-
-	private Task generateTestTasks(String title, boolean done) {
-		Task task = new Task();
-		task.setTitle(title);
-		if (done) {
-			task.setCompletedOn(new Date());
-			task.setDone(true);
-		}
-		taskservice.insert(task);
-		return task;
-	}
-
 }

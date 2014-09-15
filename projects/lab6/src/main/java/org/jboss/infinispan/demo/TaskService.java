@@ -1,29 +1,21 @@
 package org.jboss.infinispan.demo;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import org.apache.lucene.search.Query;
-import org.hibernate.search.query.dsl.QueryBuilder;
-import org.infinispan.Cache;
-import org.infinispan.cdi.Input;
-import org.infinispan.query.CacheQuery;
-import org.infinispan.query.Search;
-import org.infinispan.query.SearchManager;
+import org.infinispan.client.hotrod.RemoteCache;
 import org.jboss.infinispan.demo.model.Task;
 
 @Stateless
 public class TaskService {
 	
 	@Inject
-	Cache<Long,Task> cache;
+	RemoteCache<Long,Task> cache;
 	
 	Logger log = Logger.getLogger(this.getClass().getName());
 
@@ -32,25 +24,7 @@ public class TaskService {
 	 * @return
 	 */
 	public Collection<Task> findAll() {
-		return cache.values();
-	}
-	
-	/**
-	 * This method filters task based on the input
-	 * @param input - string to filter on
-	 * @return
-	 * 
-	 */
-	public Collection<Task> filter(String input) {
-		SearchManager sm = Search.getSearchManager(cache);
-		QueryBuilder qb = sm.buildQueryBuilderForClass(Task.class).get();
-		Query q = qb.keyword().onField("title").matching(input).createQuery();
-		CacheQuery cq = sm.getQuery(q, Task.class);
-		List<Task> tasks = new ArrayList<Task>();
-		for (Object object : cq) {
-			tasks.add((Task) object);
-		}
-		return tasks;
+		return cache.getBulk().values();
 	}
 
 	/**
@@ -81,7 +55,6 @@ public class TaskService {
 	 * 
 	 */
 	public void delete(Task task) {
-		//Note object may be detached so we need to tell it to remove based on reference
 		cache.remove(task.getId());
 	}
 	
