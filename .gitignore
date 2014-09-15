@@ -1,8 +1,10 @@
 *.zip
 *.jar
 target
+workspace
 .classpath
 .project
 .settings
 .forge_settings
+.installs/*.zip
 org.jboss.infinispan.demo.model.Task
