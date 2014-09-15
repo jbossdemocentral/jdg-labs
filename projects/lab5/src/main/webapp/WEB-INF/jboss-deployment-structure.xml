@@ -1,0 +1,10 @@
+<jboss-deployment-structure>
+    <deployment>
+        <!--  
+        <dependencies>
+			<module name="org.infinispan.commons" slot="jdg-6.3" services="export"/>
+            <module name="org.infinispan.client.hotrod" slot="jdg-6.3" services="export"/>
+        </dependencies>
+        -->
+    </deployment>
+</jboss-deployment-structure>

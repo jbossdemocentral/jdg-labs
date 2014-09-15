@@ -1,0 +1,5 @@
+<jboss-deployment-structure>
+    <deployment>
+		<!-- FIXME: Add dependencies to JDG Modules  -->        
+    </deployment>
+</jboss-deployment-structure>

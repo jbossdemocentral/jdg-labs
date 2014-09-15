@@ -1,0 +1,35 @@
+<h2>All Todos <a class="btn btn-primary pull-right" href="#/create"><i
+        class="icon-plus-sign icon-white"></i> New Task</a></h2>
+
+<table class="table table-hover">
+    <tr>
+        <th>
+            #
+        </th>
+        <th>
+            Title
+        </th>
+        <th>
+            Created On
+        </th>
+        <th>
+            Completed On
+        </th>
+        <th>Done</th>
+    </tr>
+    <tr class="success-{{task.done}}" ng-repeat="task in tasks track by $index">
+        <td>{{task.id}}</td>
+        <td>
+            {{task.title}}
+        </td>
+        <td>
+            {{task.createdOn |date:'medium'}}
+        </td>
+        <td>
+            {{task.completedOn |date:'medium'}}
+        </td>
+        <td>
+            <input type="checkbox" ng-change="taskStatusChanged(task)" ng-value="task.done" ng-model="task.done">
+        </td>
+    </tr>
+</table>

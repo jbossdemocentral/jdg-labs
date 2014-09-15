@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <profiles>
+
+    <!-- Configure the JBoss EAP Maven repository -->
+    <profile>
+      <id>jboss-eap-repository</id>
+      <repositories>
+        <repository>
+          <id>jboss-eap-repository</id>
+          <url>file:///path/to/repo/jboss-eap-6.3.0.GA-maven-repository</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>jboss-eap-plugin-repository</id>
+          <url>file:///path/to/repo/jboss-eap-6.3.0.GA-maven-repository</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+    
+     <!-- Configure the JBoss DG Maven repository -->
+    <profile>
+         <id>jboss-datagrid-repository</id>
+         <repositories>
+            <repository>
+               <id>jboss-datagrid-repository</id>
+               <name>JBoss Data Grid Maven Repository</name>
+               <url>file:///path/to/repo/jboss-datagrid-maven-repository</url>
+               <layout>default</layout>
+               <releases>
+                  <enabled>true</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </releases>
+               <snapshots>
+                  <enabled>false</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </snapshots>
+            </repository>
+            <repository>
+               <id>techpreview-all-repository</id>
+               <name>Red Hat Enterprise Maven Repository</name>
+               <url>http://maven.repository.redhat.com/techpreview/all/</url>
+               <layout>default</layout>
+               <releases>
+                  <enabled>true</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </releases>
+               <snapshots>
+                  <enabled>false</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </snapshots>
+            </repository>
+         </repositories>
+         <pluginRepositories>
+            <pluginRepository>
+               <id>jboss-datagrid-repository</id>
+               <name>JBoss Data Grid Maven Repository</name>
+               <url>file:///path/to/repo/jboss-datagrid-maven-repository</url>
+               <layout>default</layout>
+               <releases>
+                  <enabled>true</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </releases>
+               <snapshots>
+                  <enabled>false</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </snapshots>
+            </pluginRepository>
+            <pluginRepository>
+               <id>techpreview-all-repository</id>
+               <name>Red Hat Enterprise Maven Repository</name>
+               <url>http://maven.repository.redhat.com/techpreview/all/</url>
+               <layout>default</layout>
+               <releases>
+                  <enabled>true</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </releases>
+               <snapshots>
+                  <enabled>false</enabled>
+                  <updatePolicy>never</updatePolicy>
+               </snapshots>
+            </pluginRepository>
+         </pluginRepositories>
+      </profile>
+  </profiles>
+
+  <activeProfiles>
+    <!-- Optionally, make the repositories active by default -->
+    <activeProfile>jboss-eap-repository</activeProfile>
+    <activeProfile>jboss-datagrid-repository</activeProfile>
+  </activeProfiles>
+
+</settings>
