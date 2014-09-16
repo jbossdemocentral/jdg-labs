@@ -1,11 +1,1 @@
 @CHARSET "UTF-8";
-
-div svg rect {
-  fill: #564979;
-}
-
-div svg text {
-  fill: white;
-  font: 12px sans-serif;
-  text-anchor: end;
-}

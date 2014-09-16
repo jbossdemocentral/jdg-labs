@@ -9,9 +9,9 @@
 	<packaging>war</packaging>
 	<properties>
 		<version.junit>4.11</version.junit>
-		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.source>1.6</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.target>1.6</maven.compiler.target>
 		<version.arquillian_core>1.1.5.Final</version.arquillian_core>
 	</properties>
 	<dependencyManagement>
@@ -73,16 +73,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-core</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-query</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-commons</artifactId>
 			<scope>compile</scope>
 		</dependency>
@@ -90,27 +80,6 @@
 			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-client-hotrod</artifactId>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.spec.javax.annotation</groupId>
-			<artifactId>jboss-annotations-api_1.1_spec</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${version.junit}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.junit</groupId>
-			<artifactId>arquillian-junit-container</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.as</groupId>
-			<artifactId>jboss-as-arquillian-container-remote</artifactId>
-			<version>7.2.0.Final</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -129,6 +98,7 @@
 				<version>7.5.Final</version>
 				<configuration>
 					<hostname>localhost</hostname>
+					<port>9999</port>
 					<username>admin</username>
 					<password>admin-123</password>
 				</configuration>
@@ -139,6 +109,15 @@
 				<version>2.12.4</version>
 				<configuration>
 					<skipTests>true</skipTests>
+
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -146,6 +125,24 @@
 	<profiles>
 		<profile>
 			<id>arquillian-jbossas-remote-7</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.as</groupId>
+					<artifactId>jboss-as-arquillian-container-remote</artifactId>
+					<version>7.2.0.Final</version>
+				</dependency>
+				<dependency>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+					<version>${version.junit}</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.jboss.arquillian.junit</groupId>
+					<artifactId>arquillian-junit-container</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
@@ -156,6 +153,14 @@
 							<systemPropertyVariables>
 								<arquillian.launch>jbossas-remote-7</arquillian.launch>
 							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.1</version>
+						<configuration>
+							<skip>false</skip>
 						</configuration>
 					</plugin>
 				</plugins>

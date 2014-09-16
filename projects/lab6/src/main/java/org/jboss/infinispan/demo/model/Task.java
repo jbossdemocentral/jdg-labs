@@ -4,32 +4,17 @@ package org.jboss.infinispan.demo.model;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Version;
-
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
-
-/**
- * This class is the JPA entity of a Task
- * @author tqvarnst
- *
- */
-@Indexed
 public class Task implements Serializable {
 
 	private static final long serialVersionUID = 2315323429163437300L;
-
+	
 	private Long id;
 	
-	@Version
 	private int version;
-
-	@Field(store = Store.YES)
+	
 	private String title;
-
+	
 	private boolean done;
-
 
 	private Date createdOn;
 
@@ -115,5 +100,7 @@ public class Task implements Serializable {
 			result += "title: " + title;
 		result += ", done: " + done;
 		return result;
-	}	
+	}
+	
+	
 }

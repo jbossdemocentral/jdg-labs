@@ -1,0 +1,5 @@
+<!-- FIXME: Add this to the standalone.xml of the JDG server -->
+<local-cache name="tasks" start="EAGER">
+	<locking isolation="NONE" acquire-timeout="30000" concurrency-level="1000" striping="false"/>
+    <transaction mode="NONE"/>
+</local-cache>
