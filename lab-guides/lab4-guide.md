@@ -292,9 +292,9 @@ Rewrite the application to only use JDG library mode, configure a file store and
 		
 		...
 		Configuration loc = new ConfigurationBuilder().jmxStatistics()
-					.enable() // Enable JMX statistics
-					.clustering().cacheMode(CacheMode.DIST_ASYNC) 
-					.hash().numOwners(2)
+			.enable() // Enable JMX statistics
+			.clustering().cacheMode(CacheMode.DIST_ASYNC) 
+			.hash().numOwners(2)
 		...
 
 8. Configure the transport for the cluster by adding `jgroups-udp.xml` to the `GlobalConfigurationBuilder`

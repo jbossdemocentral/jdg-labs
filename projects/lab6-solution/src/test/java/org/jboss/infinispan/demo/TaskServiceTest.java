@@ -47,6 +47,7 @@ public class TaskServiceTest {
 				.addClass(Config.class)
 				.addClass(Task.class)
 				.addClass(TaskService.class)
+				.addClass(LoginHandler.class)
 				.addAsLibraries(jars)
 				.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}

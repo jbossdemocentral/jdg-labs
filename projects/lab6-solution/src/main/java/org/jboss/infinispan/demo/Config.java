@@ -26,7 +26,14 @@ public class Config {
 	@Produces
 	public RemoteCache<Long, Task> getRemoteCache() {
 		ConfigurationBuilder builder = new ConfigurationBuilder();
-		builder.addServer().host("localhost").port(11322);
+		builder.addServer()
+			.host("localhost").port(11322)
+			.security()
+	        .authentication()
+	            .enable()
+	            .serverName("tasks")
+	            .saslMechanism("DIGEST-MD5")
+	            .callbackHandler(new LoginHandler("thomas", "thomas-123".toCharArray(), "ApplicationRealm"));
 		return new RemoteCacheManager(builder.build(), true).getCache("tasks");
 	}
 

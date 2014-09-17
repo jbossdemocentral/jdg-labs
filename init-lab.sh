@@ -219,7 +219,7 @@ case "${LAB_TO_SETUP}" in
 		setup_eap_node_with_modules node1
 		setup_eap_node_with_modules node2
 		;;
-	5|6)
+	5|6|7)
 		setup_eap_with_modules
 		setup_jdg_server
 		;;
