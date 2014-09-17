@@ -19,8 +19,7 @@ The TODO application today runs on 4 mid sized virtual servers with 10 GB alloca
 To meet the predicted increase we have a accouple of options:
 
 1. Increase the number of server 5 times
-2. Use eviction together with a store to limit the amount of data in memory
-3. Layer our solution by moving to client/server mode for the JDG cache allowing applications for more effective JVM memory management.
+3. Layer our solution by moving to client/server mode for the JDG cache allowing applications for more effective JVM memory management. (Decouple data from application)
 
 ## These are the main tasks of lab 3
 
