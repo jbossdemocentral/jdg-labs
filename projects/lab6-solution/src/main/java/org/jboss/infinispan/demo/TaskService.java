@@ -43,7 +43,7 @@ public class TaskService {
 		if(task.getCreatedOn()==null) {
 			task.setCreatedOn(new Date());
 		}
-		int nextKey = cache.size() + 1;
+		int nextKey = cache.getBulk().keySet().size() + 1;
 		task.setId(new Long(nextKey));
 		cache.putIfAbsent(task.getId(), task);
 	}
