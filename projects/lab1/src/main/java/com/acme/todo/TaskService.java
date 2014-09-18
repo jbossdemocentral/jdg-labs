@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
@@ -14,9 +13,6 @@ import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 
 import com.acme.todo.model.Task;
 import com.acme.todo.model.User;
@@ -91,7 +87,6 @@ public class TaskService {
 	 * FIXME: Add implementation to also update the Object in the Cache
 	 */
 	public void update(Task task) {
-		log.info("### Updating task with task id: " + task.getId());
 		Task t2 = em.merge(task);
 		int index = currentUser.getTasks().indexOf(task);
 		currentUser.getTasks().set(index, t2);

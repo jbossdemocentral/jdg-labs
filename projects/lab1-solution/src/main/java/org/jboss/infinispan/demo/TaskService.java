@@ -1,7 +1,10 @@
 package org.jboss.infinispan.demo;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
@@ -15,6 +18,7 @@ import javax.persistence.criteria.CriteriaQuery;
 
 import org.infinispan.Cache;
 import org.jboss.infinispan.demo.model.Task;
+import org.jboss.infinispan.demo.model.User;
 
 /**
  * This class is used to query, insert or update Task object.
@@ -29,7 +33,14 @@ public class TaskService {
     EntityManager em;
 	
 	@Inject
-	Cache<Long,Task> cache;
+	Cache<Long,User> cache;
+	
+	@Inject
+	@DefaultUser
+	User currentUser;
+	
+	@Inject
+	UserService userService;
 	
 	Logger log = Logger.getLogger(this.getClass().getName());
 
@@ -40,7 +51,14 @@ public class TaskService {
 	 * DONE: Replace implementation with Cache.values()
 	 */
 	public Collection<Task> findAll() {
-		return cache.values();
+		List<Task> tasks = cache.get(currentUser.getId()).getTasks();
+		Collections.sort(tasks, new Comparator<Task>() {
+			@Override
+			public int compare(Task o1, Task o2) {
+				return o1.getCreatedOn().compareTo(o2.getCreatedOn());
+			}
+		});
+		return tasks;
 	}
 
 	/**
@@ -54,7 +72,10 @@ public class TaskService {
 			task.setCreatedOn(new Date());
 		}
 		em.persist(task);
-		cache.put(task.getId(),task);
+		User user = userService.getUserFromId(currentUser.getId());
+		user.getTasks().add(task);
+		em.merge(user);
+		cache.put(currentUser.getId(),user);
 	}
 
 
@@ -66,8 +87,8 @@ public class TaskService {
 	 */
 	public void update(Task task) {
 		Task newTask = em.merge(task);
-		em.detach(newTask);
-		cache.replace(task.getId(),newTask);
+		
+//		cache.replace(task.getId(),newTask);
 	}
 	
 	/**

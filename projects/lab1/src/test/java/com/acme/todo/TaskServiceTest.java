@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -24,10 +22,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.acme.todo.Config;
-import com.acme.todo.DefaultUser;
-import com.acme.todo.TaskService;
-import com.acme.todo.UserService;
 import com.acme.todo.model.Task;
 import com.acme.todo.model.User;
 
