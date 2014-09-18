@@ -4,9 +4,6 @@
 <table class="table table-hover">
     <tr>
         <th>
-            #
-        </th>
-        <th>
             Title
         </th>
         <th>
@@ -18,15 +15,14 @@
         <th>Done</th>
     </tr>
     <tr class="success-{{task.done}}" ng-repeat="task in tasks track by $index">
-        <td>{{task.id}}</td>
         <td>
             {{task.title}}
         </td>
         <td>
-            {{task.createdOn |date:'medium'}}
+            {{task.createdOn |date:'mediumDate'}}
         </td>
         <td>
-            {{task.completedOn |date:'medium'}}
+            {{task.completedOn |date:'mediumDate'}}
         </td>
         <td>
             <input type="checkbox" ng-change="taskStatusChanged(task)" ng-value="task.done" ng-model="task.done">

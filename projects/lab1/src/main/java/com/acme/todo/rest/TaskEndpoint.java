@@ -1,4 +1,4 @@
-package org.jboss.infinispan.demo.rest;
+package com.acme.todo.rest;
 
 import java.util.Collection;
 
@@ -14,8 +14,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.jboss.infinispan.demo.TaskService;
-import org.jboss.infinispan.demo.model.Task;
+import com.acme.todo.TaskService;
+import com.acme.todo.model.Task;
 
 /**
  * 

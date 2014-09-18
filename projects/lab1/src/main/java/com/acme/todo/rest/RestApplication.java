@@ -1,4 +1,4 @@
-package org.jboss.infinispan.demo.rest;
+package com.acme.todo.rest;
 
 
 import javax.ws.rs.core.Application;

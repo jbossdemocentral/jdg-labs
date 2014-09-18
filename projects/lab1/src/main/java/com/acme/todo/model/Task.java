@@ -1,4 +1,4 @@
-package org.jboss.infinispan.demo.model;
+package com.acme.todo.model;
 
 
 import java.io.Serializable;
