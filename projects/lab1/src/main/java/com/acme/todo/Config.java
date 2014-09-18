@@ -1,4 +1,4 @@
-package org.jboss.infinispan.demo;
+package com.acme.todo;
 
 
 /**
