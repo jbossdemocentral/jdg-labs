@@ -3,7 +3,7 @@ DEMO="JDG Workshop Labs"
 AUTHORS="Thomas Qvarnstrom, Red Hat <tqvarnst@redhat.com>"
 ASCII_WIDTH=52
 DEFAULT_INSTALL_DIR=jdg-workshop
-INSTALL_DIR=$(mktemp -d XXXXXXXX)/jdg-workshop
+INSTALL_DIR=$(mktemp -d XXXXXXXX)/jdg-labs
 
 PROG_NAME=`basename $0`
 BASE_DIR=`dirname $0`
@@ -57,7 +57,7 @@ cp installs/rh-internal-download.sh ${INSTALL_DIR}/installs
 
 curl -s -o ${INSTALL_DIR}/lab-guides/lab-setup-guide.pdf https://gitprint.com/rhnordics/jdg-labs/blob/master/lab-guides/lab-setup-guide.md?download
 
-LABS=(lab1 lab2 lab3 lab4 lab5 lab6)
+LABS=(lab1 lab2 lab3 lab4 lab5 lab6 lab7)
 
 for lab in ${LABS[*]}
 do
@@ -85,7 +85,7 @@ cd ..
 echo "Compressing the release"
 pushd ${INSTALL_DIR}
 cd .. 
-zip -r ../jdg-labs.zip jdg-workshop
+zip -r ../jdg-labs.zip jdg-labs
 TMPDIR=`pwd`
 
 popd > /dev/null

@@ -59,7 +59,6 @@ public class TaskServiceTest {
 				.addClass(LoginHandler.class)
 				.addClass(UserOSCountMapper.class)
 				.addClass(CountReducer.class)
-				.addAsResource("jgroups-udp.xml")
 				.addAsLibraries(jars)
 				.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}
