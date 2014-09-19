@@ -6,7 +6,7 @@ feel adventurous try to accomplish goals without the help of the step-by-step gu
 When the security department review the new solution with client server mode, they expressed worries about the fact that clients are not authenticated. To go live with Client server mode we need to implement authentification using simple username password. 
 
 ## Use-case
-Increase the security by addning authentification
+Increase the security by addning authentication
 
 ## These are the main steps of lab 5
 
