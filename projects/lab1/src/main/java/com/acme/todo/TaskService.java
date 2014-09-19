@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -23,6 +25,7 @@ import com.acme.todo.model.User;
  *
  */
 @Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class TaskService {
 
 	@PersistenceContext
@@ -30,14 +33,10 @@ public class TaskService {
 	
 	@Inject
 	@DefaultUser
-	@SessionScoped
 	User currentUser;
 	
 	@Inject
 	UserService userService;
-	
-	
-	
 	
 	//FIXME: Inject Cache<Long,Task> object
 

@@ -1,4 +1,4 @@
-package org.jboss.infinispan.demo;
+package com.acme.todo;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,45 +17,55 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.infinispan.Cache;
-import org.jboss.infinispan.demo.model.Task;
-import org.jboss.infinispan.demo.model.User;
+
+import com.acme.todo.model.Task;
+import com.acme.todo.model.User;
 
 /**
  * This class is used to query, insert or update Task object.
+ * 
  * @author tqvarnst
- *
+ * 
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class TaskService {
 
 	@PersistenceContext
-    EntityManager em;
-	
-	@Inject
-	Cache<Long,User> cache;
-	
+	EntityManager em;
+
 	@Inject
 	@DefaultUser
 	User currentUser;
-	
+
 	@Inject
 	UserService userService;
-	
+
+	@Inject
+	Cache<String, User> cache;
+
 	Logger log = Logger.getLogger(this.getClass().getName());
 
 	/**
-	 * This methods should return all cache entries, currently contains mockup code. 
+	 * This methods should return all cache entries, currently contains mockup
+	 * code.
+	 * 
 	 * @return
 	 * 
-	 * DONE: Replace implementation with Cache.values()
+	 *         DONE: Replace implementation with Cache.values()
 	 */
 	public Collection<Task> findAll() {
-		List<Task> tasks = cache.get(currentUser.getId()).getTasks();
+		List<Task> tasks = cache.get(currentUser.getUsername()).getTasks();
 		Collections.sort(tasks, new Comparator<Task>() {
 			@Override
 			public int compare(Task o1, Task o2) {
-				return o1.getCreatedOn().compareTo(o2.getCreatedOn());
+				if (o1.isDone() == o2.isDone()) {
+					return o2.getCreatedOn().compareTo(o1.getCreatedOn());
+				} else if (o1.isDone()) {
+					return 1;
+				} else {
+					return -1;
+				}
 			}
 		});
 		return tasks;
@@ -63,67 +73,58 @@ public class TaskService {
 
 	/**
 	 * This method persists a new Task instance
+	 * 
 	 * @param task
 	 * 
-	 * DONE: Add implementation to also update the Cache with the new object
+	 *            DONE: Add implementation to also update the Cache with the new
+	 *            object
 	 */
 	public void insert(Task task) {
 		if(task.getCreatedOn()==null) {
 			task.setCreatedOn(new Date());
 		}
 		em.persist(task);
-		User user = userService.getUserFromId(currentUser.getId());
-		user.getTasks().add(task);
-		em.merge(user);
-		cache.put(currentUser.getId(),user);
+		currentUser.getTasks().add(task);
+		cache.replace(currentUser.getUsername(), currentUser);
 	}
-
 
 	/**
 	 * This method persists an existing Task instance
+	 * 
 	 * @param task
 	 * 
-	 * DONE: Add implementation to also update the Object in the Cache
+	 *            DONE: Add implementation to also update the Object in the
+	 *            Cache
 	 */
 	public void update(Task task) {
-		Task newTask = em.merge(task);
-		
-//		cache.replace(task.getId(),newTask);
+		Task t2 = em.merge(task);
+		int index = currentUser.getTasks().indexOf(task);
+		currentUser.getTasks().set(index, t2);
+		em.detach(t2);
+		cache.replace(currentUser.getUsername(), currentUser);
 	}
-	
+
 	/**
 	 * This method deletes an Task from the persistence store
+	 * 
 	 * @param task
 	 * 
-	 * DONE: Add implementation to also delete the object from the Cache
+	 *            DONE: Add implementation to also delete the object from the
+	 *            Cache
 	 */
 	public void delete(Task task) {
-		//Note object may be detached so we need to tell it to remove based on reference
-		em.remove(em.getReference(task.getClass(),task.getId()));
-		cache.remove(task.getId());
+		currentUser.getTasks().remove(task);	
+		cache.replace(currentUser.getUsername(), currentUser);
 	}
-	
-	
+
 	/**
 	 * This method is called after construction of this SLSB.
 	 * 
-	 * DONE: Replace implementation to read existing Tasks from the database and add them to the cache
+	 * DONE: Replace implementation to read existing Tasks from the database and
+	 * add them to the cache
 	 */
 	@PostConstruct
 	public void startup() {
-		
-		log.info("### Querying the database for tasks!!!!");
-		final CriteriaQuery<Task> criteriaQuery = em.getCriteriaBuilder().createQuery(Task.class);
-		Collection<Task> resultList = em.createQuery(
-				criteriaQuery.select(
-						criteriaQuery.from(Task.class)
-						)
-				).getResultList();
-		
-		for (Task task : resultList) {
-			this.insert(task);
-		}
-		
 	}
-	
+
 }
