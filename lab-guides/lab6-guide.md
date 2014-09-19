@@ -29,7 +29,7 @@ To assist with setting up the lab environment we have provided a shell script th
 1. Add authentification to hotrod endpoint in subsystem `urn:infinispan:server:endpoint:...` like this:
 
 		<subsystem xmlns="urn:infinispan:server:endpoint:6.1">
-            **<hotrod-connector socket-binding="hotrod" cache-container="local">
+            <hotrod-connector socket-binding="hotrod" cache-container="local">
 				<topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
 				<authentication security-realm="ApplicationRealm">
 					<sasl server-name="tasks" mechanisms="DIGEST-MD5" qop="auth">
@@ -39,7 +39,7 @@ To assist with setting up the lab environment we have provided a shell script th
 						<property name="com.sun.security.sasl.digest.utf8">true</property>
 					</sasl>
 				</authentication>
-			</hotrod-connector>**
+			</hotrod-connector>
             <memcached-connector socket-binding="memcached" cache-container="local"/>
             <rest-connector virtual-server="default-host" cache-container="local" security-domain="other" auth-method="BASIC"/>
         </subsystem>
@@ -48,12 +48,12 @@ To assist with setting up the lab environment we have provided a shell script th
 
 		<subsystem xmlns="urn:infinispan:server:core:6.1" default-cache-container="local">
 	        <cache-container name="local" default-cache="default" statistics="true">
-	        	**<security>
+	        	<security>
 				  <authorization>
 					  <identity-role-mapper/>
 					  <role name="taskusers" permissions="READ WRITE BULK_READ"/>
 				  </authorization>
-				</security>**
+				</security>
 			...
 			</cache-container>
 		</subsystem>
