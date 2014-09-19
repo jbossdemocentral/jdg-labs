@@ -37,22 +37,7 @@ app.controller('ListCtrl', function ($scope, $http) {
         });
     };
     
-    $scope.filter = function() {
-    	var value = $scope.filter.value;
-    	if(value.length > 0) {
-	    	$http.get('/todo/rest/tasks/filter/' + $scope.filter.value).success(function (data) {
-	            $scope.tasks = data;
-	        }).error(function (data, status) {
-	            console.log('Error ' + data);
-	        });
-    	} else {
-    		$http.get('/todo/rest/tasks').success(function (data) {
-    	        $scope.tasks = data;
-    	    }).error(function (data, status) {
-    	        console.log('Error ' + data);
-    	    });
-    	}
-	};
+
 });
  
 app.controller('CreateCtrl', function ($scope, $http, $location) {

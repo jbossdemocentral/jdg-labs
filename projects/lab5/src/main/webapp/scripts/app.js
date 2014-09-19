@@ -36,6 +36,8 @@ app.controller('ListCtrl', function ($scope, $http) {
             console.log('Error ' + data);
         });
     };
+    
+
 });
  
 app.controller('CreateCtrl', function ($scope, $http, $location) {
