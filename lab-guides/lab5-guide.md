@@ -3,105 +3,118 @@ This explains the steps for lab 5, either follow them step-by-step or if you
 feel adventurous try to accomplish goals without the help of the step-by-step guide.
 
 ## Background 
-The TODO application is a huge success and over 1 million users are today using it to synchronise the task list between different devices. Even though each entry are typically small the data is growing fast. By mid next year numbers of users and expected to grow to 5 millions. However the success gives new challenges. The memory used to store tasks is growing fast.
+The TODO application is a huge success and over 100 000 users are today using it to synchronise the task list between different devices. Even though each entry are typically small the data is growing fast. By mid next year numbers of users and expected to grow to 500 000 millions and 1 million add the end of the year. However the success gives new challenges. The memory used to store tasks is growing fast.
 
 ### Memory usage today in the future
-The average length of a title is 20 characters (about 80 bytes). Together with two Date objects (32 bytes each) and the other fields we can assume that each Task object will take about 200 bytes of memory. The average number of tasks per user is 50. 
+The average length of a title is 20 characters (about 80 bytes). Together with two Date objects (32 bytes each) and the other fields we can assume that each Task object will take about 200 bytes of memory. The average number of tasks per user is 50. Today the effective data storage (data without meta-data) is about 1 GB of data [100 000 x 50 tasks per user x 200 bytes per task / (1024^3)]. Given a bit of meta-data the amount of java heap used to store objects are about 1.2 GB. 
 
-Today the effective data storage used (data without meta-data) is about 10 GB of data [1 million x 50 tasks per user x 200 bytes per task / (1024^3)].
+1. What's the expected storage need for data mid next year?
+1. what's the expected storage need for data end of next year?
 
-Mid next year the prediction is that we will have to be able to store 50 GB of data in the grid. 
+Given that myTODO application is currently using replicated mode these 1.5 GB are stored the same on each node. Switching to distributed mode would mean that we can grow the in-memory storage by adding more nodes.
 
-Given that TODO application is using distributed with 2 owners per object, the used storage is probably closer to 25 GB today and 125 GB mid next year.
+Using library mode we are using the same java heap for storage as the application it self is using. Using Client/Server mode with HotRod can bring lots of benefits since we can resource optimize. Java EE applications needs CPU resources and may actually behave better with a lower java heap, while JDG Server uses less CPU and can be optimized to use larger java heap.
 
-The TODO application today runs on 4 mid sized virtual servers with 10 GB allocated to JVM on each host. 
 
-To meet the predicted increase we have a accouple of options:
+## Use-case
+Rewrite the application to only use JDG Client Server mode.
 
-1. Increase the number of server 5 times
-2. Use eviction together with a store to limit the amount of data in memory
-3. Layer our solution by moving to client/server mode for the JDG cache allowing applications for more effective JVM memory management.
+## These are the main tasks of lab 5
 
-## These are the main tasks of lab 3
+1. Setup the lab environment
+1. Add dependencies to HotRod client
+1. Rewrite the `TaskServer` to use HotRod instead of client mode
+1. Remove dependencies to jdg-core
 
-1. List pros and cons with different solutions to the memory issue.
-2. Setup a standalone node of JDG
-3. Rewrite the application to use HotRod client instead of native client.
- 
-## Step-by-Step
-1. Discussion pros and cons with different options for solution to the memory usage issue
-2. Setup of a standalone node, but running the init-lab.sh for lab5
+### Setup the lab environment
+  To assist with setting up the lab environment we have provided a shell script that does this. 
 
-		$ ./init-lab.sh --lab=5
-		
-3. Configure the cache in the JDG Server, Open `target/jboss-datagrid-6.3.0-server/standalone/configuration/standalone.xml` and add the following to the `infinispan:server:core` subsystem inside the `cache-container` named `local`:
+  1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 
-		<local-cache name="tasks" start="EAGER">
-			<locking isolation="NONE" acquire-timeout="30000" concurrency-level="1000" striping="false"/>
-			<transaction mode="NONE"/>
-		</local-cache>
-		
-4. Start the JDG server (and EAP if not already started)
+    		$ sh init-lab.sh --lab=5
 
-		$ target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
-		$ target/jboss-eap-6.3/bin/standalone.sh 
-
-5. Setup development and runtime dependencies by adding `infinispan-client-hotrod` and `infinispan-commons` as dependencies in pom.xml
-
-	_Note:_ Because of a known bug for HotRod modules we will note use the EAP modules for HotRod. Instead we are going to ship the libraries in WEB-INF/lib by setting scope compile instead of scope provided.
+    Start the servers in separate consoles using the following commands
 	
-6. Write CDI producers in the `org.jboss.infinispan.demo.Config`:
+	EAP Server:	
+		
+		$ ./target/jboss-eap-6.3/bin/standalone.sh
+		
+	JDG Server:
+		
+		$ ./target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+		
+
+## Step-by-Step
+1. Discussion pros and cons with different options for solution to the memory usage issuses with you the person to your collegues.
+1. Open project lab5 in JBoss Developer Studio
+1. Add HotRod client development and runtime dependencies by opening pom.xml and uncomment the following lines:
+		
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-commons</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-client-hotrod</artifactId>
+			<scope>compile</scope>
+		</dependency>
+	
+	**Note:** We are here using the scope `compile` since we want maven to add these jars and it's transient dependendecies to WEB-INF/lib
+
+1. Before we rewrite the `TaskService` we need to configure the HotRod client using CDI to produce a `RemoteCache` object. Open `Config` class and add the following to it:
 
 		@Produces
 		public RemoteCache<Long, Task> getRemoteCache() {
 			ConfigurationBuilder builder = new ConfigurationBuilder();
 			builder.addServer().host("localhost").port(11322);
-			return new RemoteCacheManager(builder.build(), true).getCache("tasks");
+			return new RemoteCacheManager(builder.build(), true).getCache("default");
 		}
 
-7. Implement the following methods and field in the TaskService class
-
-	Field cache should look like this
+	**Note:** We are reusing the default cache in this lab, in lab 6 we will configure our own cache instead.
 	
+1. Open the `TaskSerivce` class
+1. Inject a `RemoteCache` object like this:
+
 		@Inject
 		RemoteCache<Long, Task> cache;
-	
-	TaskService.findAll(), should look like this
 		
+1. Implement the `findAll()` method like this:
+
 		public Collection<Task> findAll() {
 			return cache.getBulk().values();
 		}
-	
-	TaskService.insert(Task), should look like this
-	
+		
+1. Implement the `insert(Task)` method like this:
+
 		public void insert(Task task) {
 			if(task.getCreatedOn()==null) {
 				task.setCreatedOn(new Date());
 			}
-			int nextKey = cache.size() + 1;
-			task.setId(new Long(nextKey));
+			task.setId(System.nanoTime());
 			cache.putIfAbsent(task.getId(), task);
-		}
-		
-	TaskService.update(Task), should look like this
-	
-		public void update(Task task) {
-			cache.replace(task.getId(), task);			
-		}
-	
-	TaskService.delete(Task), should look like this
-	
-		public void delete(Task task) {
-			this.delete(task.getId());
-		}
-	
-		
-9. Run the arquillian tests to verify that the application.
-10. Deploy the application.
+		}		
 
-	$ mvn clean package jboss-as:deploy
-	
-11. Verify that everything works by opening a browser to [http://localhost:8080/todo](http://localhost:8080/todo)
+1. Implement the `update(Task)` method like this:
+
+		public void update(Task task) {
+			cache.replace(task.getId(), task);
+		}
+
+1. Implement the `delete(Long)` method like this:
+
+		public void delete(Long id) {
+			cache.remove(id);
+		}
+
+1. Save the `TaskServer.java` file
+1. Open `TaskServiceTest.java` and uncomment the the `File[] jars = ....` and `.addAsLibraries(...)`
+1. Run the JUnit test and verify that everything works.
+1. Deploy the application using the following command from lab7 dir
+		
+		$ mvn clean package jboss-as:deploy
+		
+10. Congratulations you are done with lab 5.
 
 
 

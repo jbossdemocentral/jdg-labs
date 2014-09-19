@@ -1,33 +1,18 @@
 # JDG + EAP Lab 1 Guide
-This explains the steps for lab 1, either follow them step-by-step or if you 
-feel adventurous read the overview and try to accomplish goals without the help 
-of the step-by-step
+This explains the steps for lab 1, either follow them step-by-step or if you  feel adventurous read the overview and try to accomplish goals without the help of the step-by-step
 
-**NOTE:** If you are looking at the PDF version and have problems with for 
-example copying text, the original Markdown is available 
+**NOTE:** If you are looking at the PDF version and have problems with for example copying text, the original Markdown is available 
 [here](http://bit.ly/Ybh0Hn).
 
 ## Background 
-Acme Inc has released a new cloud service application to manage tasks lists 
-called Todo. The application is a new HTML5 interface using AngularJS (don't 
-worry, you don't have to know AngularJS to complete the labs).  For server 
-side it is using CDI and REST on JBoss EAP to expose CRUD services. The 
-application was initially only released using HTML5 clients, but following the 
-successful start Acme have also implemented native applications for Android and 
-iPhone that are using the same REST services. 
+Acme Inc has released a new cloud service application to manage tasks lists called MyTODO. The application is implemented using HTML5 and AngularJS (don't worry, you don't have to know AngularJS to complete the labs) for the client side.  The server side uses CDI and REST on JBoss EAP to expose CRUD services on top of a database. There are also Android and iPhone apps for myTODO that are using the same REST services. 
 
-The challenge for Acme right now is that the traffic to the backend is steadily
-increasing and within 6 month they predict that the database they are using (H2)
-will be overloaded and they will either have to buy more hardware or rewrite the
-application using a NoSQL store.
+The main challenge for Acme right now is that the round trip to a database is to expensive for the smart apps and the responsive UI interface. 
 
-However during a sales meeting with Red Hat the JBoss Solution Architect 
-suggested that implementing JDG as a side cache might be a easier solution, 
-where minimal changes to the application would have to be implemented.
+During a meeting with the local Red Hat Sales team, the JBoss SA suggested that Acme should use JDG to avoid the expensive round trip. Initally the JBoss SA recommends that Acme implements JDG as a side cache with minimal changes to the application.
 
 ## Goals
-Increase read performance 10 times by implementing JDG as side cache to the H2 
-database without changing the UI, REST service or data model object. 
+Increase read performance 10 times by implementing JDG as side cache to the database without changing the UI, REST service or data model object. 
 
 ## Objectives
 The main steps in lab1 is to:
@@ -48,10 +33,9 @@ The First step over is to setup the lab environment
 ### Setup the lab environment
 To assist with setting up the lab environment we have provided a shell script that does this. 
 
-1. Run the shell script by standing in the jdg lab root directory (~/jdg-workshops) execute a command like this
+1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 
   		$ sh init-lab.sh --lab=1
-
 
 ### Install and build the mock project
 
@@ -66,8 +50,6 @@ To assist with setting up the lab environment we have provided a shell script th
 1. Run the JUnit test either in JBDS or by using command line. To run the test the ```arquillian-jbossas-remote-7``` profile will have to be activated.
 
 		$ mvn -P arquillian-jbossas-remote-7 test
-		
-	The test should FAIL because 1000 reads on H2 data base takes longer than 400ms. Using JBoss Data Grid we should be able to do 1000 reads well under 400 ms. 	
 		
 1. Build and deploy the project
 
@@ -368,6 +350,6 @@ Then we put this class somewhere in our classpath (or even better in our source)
 
 		$ mvn package jboss-as:deploy
 		
-1. Test the application by opening a browser window to [http://localhost:8080/todo]()
+1. Test the application by opening a browser window to [http://localhost:8080/mytodo]()
 
-1. Congratulations you are done with lab1. If you finished early try to add transactional behaviour the the cache or look at the solution for more info.
+1. Congratulations you are done with lab1. 

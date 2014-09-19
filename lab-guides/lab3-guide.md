@@ -26,6 +26,15 @@ These are the main tasks of lab 3
 2. Update the `org.jboss.infinispan.demo.model.Task` model with Search mapping 
 annotation.
 
+### Setup the lab environment
+  To assist with setting up the lab environment we have provided a shell script that does this. 
+  
+  **Note:** _If you previously setup up lab 1 or 2 using this script there is no need to do this for lab 3_
+
+  1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
+
+    		$ sh init-lab.sh --lab=3
+
 ## Step-by-Step
 
 1. Open `src/main/java/org/jboss/infinispan/demo/Config.java` 
@@ -51,7 +60,7 @@ annotation.
 as the modifier to the `private String title` field.
 6. Run the JUnit test to verify that everything works.
 7. Deploy and test the application
-
+		
 		$ mvn package jboss-as:deploy
 		
 8. Congratulations you are done with lab3.

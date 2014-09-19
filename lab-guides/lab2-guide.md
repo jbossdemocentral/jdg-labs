@@ -1,16 +1,12 @@
 # JDG + EAP Lab 2 Guide
-This explains the steps for lab 2, either follow them step-by-step or if you 
-feel adventurous try to accomplish goals without the help of the step-by-step guide.
+This explains the steps for lab 2, either follow them step-by-step or if you feel adventurous try to accomplish goals without the help of the step-by-step guide.
 
 ## Background 
-In Lab 1 we implemented a side cache using JDG to speed up reads, but master 
-data store is still the database. So far however the data access is only a using
-the common CRUD (Create, Read, Update and Delete) operations. Since JDG is a 
-key/value store these operations are easy to implement. 
+In Lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement. 
 
-A competing vendor that has a similar task management solution released a new feature where users can filter their tasks. Something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. An external consultant are hired and to implement this feature, but since he wasn't familiar with JDG he implemented the filter solution using JPA query. This has once again put more load on the database and performance has degraded.
+A competing vendor that has a similar task management solution released a new feature where users can filter their tasks. Something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. An external consultant are hired and to implement this feature, but since he wasn't familiar with JDG he implemented the filter solution using JPA query. This is however not responsive enough and we refactor the filter function to query JDG instead.
 
-JDG has very advanced querying capabilities in library mode (remote is still tech preview)
+JDG has very advanced querying capabilities in library mode (client/server quering is tech preview for JDG 6.3)
 
 ## Use-case
 You are tasked to rewrite the filter implementation using queries in JDG instead of JPA queries. However the Task data model is used in the native mobile application and since it will take a while before we can update the mobile application you are not allowed to change the org.jboss.infinspan.demo.model.Task class.
@@ -24,6 +20,7 @@ do this without modifying the org.jboss.infinspan.demo.model.Task class.
 
 To to this we need to do the following:
 
+1. Setup the lab environment
 1. Add developer dependencies:
 	Update the pom.xml and add developer dependency to infinispan-query
 2. Add runtime dependencies
@@ -37,6 +34,15 @@ To to this we need to do the following:
 	Replace the implementation of `TaskSerivce.filter(String)` to query JDG instead of DB
 
 ## Step-by-Step
+
+### Setup the lab environment
+  To assist with setting up the lab environment we have provided a shell script that does this. 
+  
+  **Note:** _If you previously setup up lab 1 using this script there is no need to do this for lab 2__
+
+  1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
+
+    		$ sh init-lab.sh --lab=2
 
 ### Add developer dependencies
 
@@ -179,7 +185,7 @@ To to this we need to do the following:
 		
 		QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
 		
-1. Now we can create a `Query` object from the `QueryBuilder` using the fluid api to specify which Field to match etc. (For more information on see section *[6 Querying](http://red.ht/1w5yrnC)* of *[JBoss WFK - Hiberante Search Guide](http://red.ht/1rm6bg2)*)
+1. Now we can create a `Query` object from the `QueryBuilder` using the fluid api to specify which Field to match etc.
 
 		Query q = qb.keyword().onField("title").matching(input).createQuery();
 
@@ -195,7 +201,3 @@ To to this we need to do the following:
 	
 ### Test and deploy
 Now you are almost finished with Lab 2, you should run the Arquillian tests and then deploy the application.
-
- 
-	  
-			
