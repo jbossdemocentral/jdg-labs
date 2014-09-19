@@ -35,7 +35,7 @@ public class TaskServiceTest {
 				.addClass(Config.class)
 				.addClass(Task.class)
 				.addClass(TaskService.class)
-				.addAsResource("jgroups-udp.xml")
+				.addAsResource("jgroups-cluster-config.xml")
 				.addAsWebInfResource(new File("src/main/webapp/WEB-INF/jboss-deployment-structure.xml"))
 				.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}

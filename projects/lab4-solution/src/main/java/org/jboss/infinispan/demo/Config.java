@@ -37,7 +37,7 @@ public class Config {
 		if (manager == null) {
 			GlobalConfiguration glob = new GlobalConfigurationBuilder()
 					.clusteredDefault() // Builds a default clustered configuration
-					.transport().addProperty("configurationFile", "jgroups-udp.xml")
+					.transport().addProperty("configurationFile", "jgroups-cluster-config.xml")
 					.globalJmxStatistics().allowDuplicateDomains(true).enable() // This
 						// method enables the jmx statistics of the global
 						// configuration and allows for duplicate JMX domains
