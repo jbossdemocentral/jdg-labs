@@ -86,7 +86,7 @@
 		 -->
 	</dependencies>
 	<build>
-		<finalName>todo</finalName>
+		<finalName>mytodo</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
