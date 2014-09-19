@@ -49,8 +49,7 @@ public class Config {
 
 			Configuration loc = new ConfigurationBuilder().jmxStatistics()
 					.enable() // Enable JMX statistics
-					.clustering().cacheMode(CacheMode.DIST_ASYNC) // Set Cache mode to DISTRIBUTED with SYNCHRONOUS replication
-					.hash().numOwners(2)
+					.clustering().cacheMode(CacheMode.REPL_SYNC)
 					.persistence()
 						.addSingleFileStore()
 							.location(System.getProperty("jboss.home.dir") + "/cache-store")

@@ -35,7 +35,7 @@ public class TaskService {
 	public void insert(Task task) {
 		if(task.getCreatedOn()==null)
 			task.setCreatedOn(new Date());
-		task.setId(new Long(cache.size()+1));
+		task.setId(System.nanoTime());
 		cache.put(task.getId(),task);
 	}
 

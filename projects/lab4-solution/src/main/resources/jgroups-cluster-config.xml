@@ -27,11 +27,9 @@
             mcast_recv_buf_size="25000000"
             mcast_send_buf_size="640000"
             loopback="true"
-            discard_incompatible_packets="true"
             max_bundle_size="64000"
             max_bundle_timeout="30"
             ip_ttl="${jgroups.udp.ip_ttl:2}"
-            enable_bundling="true"
             enable_diagnostics="false"
 
             thread_naming_pattern="pl"
@@ -62,7 +60,6 @@
                     use_mcast_xmit="true"
                     retransmit_timeout="300,600,1200"
                     discard_delivered_msgs="true"/>
-    <UNICAST timeout="300,600,1200"/>
     <pbcast.STABLE stability_delay="1000" desired_avg_gossip="50000" max_bytes="1000000"/>
     <pbcast.GMS print_local_addr="false" join_timeout="3000" view_bundling="true"/>
     <UFC max_credits="500000" min_threshold="0.20"/>

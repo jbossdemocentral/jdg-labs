@@ -57,6 +57,8 @@ public class TaskServiceTest {
 				.addClass(Task.class)
 				.addClass(TaskService.class)
 				.addClass(BIService.class)
+				.addClass(BIService.class)
+				.addClass(LoginHandler.class)
 				.addClass(UserOSCountMapper.class)
 				.addClass(CountReducer.class)
 				.addAsLibraries(jars)

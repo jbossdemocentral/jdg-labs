@@ -24,17 +24,20 @@ public class Config {
 
 	
 	/**
-	 * DONE: Add a default Producer for org.infinispan.client.hotrod.RemoteCache<Long, Task> 
-	 * 		  using org.infinispan.client.hotrod.configuration.ConfigurationBuilder
-	 * 		  and org.infinispan.client.hotrod.RemoteCacheManager
 	 * 
 	 * @return org.infinispan.client.hotrod.RemoteCache<Long, Task>
 	 */
 	@Produces
-	@ApplicationScoped
 	public RemoteCache<Long, Task> getRemoteCache() {
 		ConfigurationBuilder builder = new ConfigurationBuilder();
-		builder.addServer().host("localhost").port(11322);
+		builder.addServer()
+			.host("localhost").port(11322)
+			.security()
+	        .authentication()
+	            .enable()
+	            .serverName("tasks")
+	            .saslMechanism("DIGEST-MD5")
+	            .callbackHandler(new LoginHandler("thomas", "thomas-123".toCharArray(), "ApplicationRealm"));
 		return new RemoteCacheManager(builder.build(), true).getCache("tasks");
 	}
 	

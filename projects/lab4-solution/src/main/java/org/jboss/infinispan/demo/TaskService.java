@@ -57,13 +57,19 @@ public class TaskService {
 
 	/**
 	 * This method persists a new Task instance
+	 * 
+	 * NOTE: We use System.nanoTime() to create unique ids for the tasks, but please be aware that 
+	 * using System.nanoTime() is not recommended and it does NOT guarantee unique id's. Why  we use it here
+	 * is because we have a very simplified domain model and normally we would probably connect tasks to a
+	 * User object in which case generatign unique id's us much better.
+	 * 
 	 * @param task
 	 * 
 	 */
 	public void insert(Task task) {
 		if(task.getCreatedOn()==null)
 			task.setCreatedOn(new Date());
-		task.setId(new Long(cache.size()+1));
+		task.setId(new Long(System.nanoTime())); //Not recommended!!!!
 		cache.put(task.getId(),task);
 	}
 

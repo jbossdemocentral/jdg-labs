@@ -6,9 +6,6 @@
 <table class="table table-hover">
     <tr>
         <th>
-            #
-        </th>
-        <th>
             Title
         </th>
         <th>
@@ -20,7 +17,6 @@
         <th>Done</th>
     </tr>
     <tr class="success-{{task.done}}" ng-repeat="task in tasks track by $index">
-        <td>{{task.id}}</td>
         <td> 
             {{task.title}}
         </td>
