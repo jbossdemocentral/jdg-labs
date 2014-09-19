@@ -115,8 +115,3 @@ Rewrite the application to only use JDG Client Server mode.
 		$ mvn clean package jboss-as:deploy
 		
 10. Congratulations you are done with lab 5.
-
-
-
-
-
