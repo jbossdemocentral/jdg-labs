@@ -134,7 +134,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 			}
 	
 		}
-		
+
 1. Implement a new way to generate unique id when inserting new tasks. Replace:
 		
 		public void insert(Task task) {
@@ -283,6 +283,32 @@ Rewrite the application to only use JDG library mode, configure a file store and
 	
 	
 		}
+		
+1. Since we are not using the database anymore we don't have the prepoulated data from `import.sql` which our test relies on. Update the `TaskServiceTest.java` to provide new test data.
+
+		@Test
+		@InSequence(5)
+		public void testFilterTask() {
+	
+			Task t1 = generateTestTasks("Sell EAP to customer A", false);
+			Task t2 = generateTestTasks("Get FeedBack from EAP customers", false);
+			Task t3 = generateTestTasks("Get FeedBack from JDG custoers", true);
+			Task t4 = generateTestTasks("Sell JDG to customer B", false);
+			Task t5 = generateTestTasks("Pickup kids from daycare", false);
+	
+			Collection<Task> tasks = taskservice.filter("EAP");
+			Assert.assertEquals(2, tasks.size());
+			tasks = taskservice.filter("SELL");
+			Assert.assertEquals(2, tasks.size());
+			tasks = taskservice.filter("FeedBack");
+			Assert.assertEquals(2, tasks.size());
+	
+			taskservice.delete(t1);
+			taskservice.delete(t2);
+			taskservice.delete(t3);
+			taskservice.delete(t4);
+			taskservice.delete(t5);
+		}	
 			
 1. Run the JUnit test to verify your changes so far.
 

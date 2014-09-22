@@ -70,39 +70,38 @@ public class TaskServiceTest {
 	}
 
 	@Test
-	@InSequence(4)
-	public void testUpdateTask() {
-		int orgsize = taskservice.findAll().size();
-		Task task = new Task();
-		task.setTitle("This is the second test task");
-		task.setCreatedOn(new Date());
-		taskservice.insert(task);
-
-		log.info("###### Inserted task with id " + task.getId());
-		task.setDone(true);
-		task.setCompletedOn(new Date());
-		taskservice.update(task);
-		Assert.assertEquals(orgsize+1, taskservice.findAll().size());
-		
-		for (Task listTask : taskservice.findAll()) {
-			if("This is the second test task".equals(listTask.getTitle())) {
-				Assert.assertNotNull(listTask.getCompletedOn());
-				Assert.assertEquals(true,listTask.isDone());
-				taskservice.delete(listTask);
-				Assert.assertEquals(orgsize, taskservice.findAll().size());
-			}
-		}
-	}
-	
-	@Test
 	@InSequence(5)
 	public void testFilterTask() {
+		
+//		Task t1 = generateTestTasks("Sell EAP to customer A", false);
+//		Task t2 = generateTestTasks("Get FeedBack from EAP customers", false);
+//		Task t3 = generateTestTasks("Get FeedBack from JDG custoers", true);
+//		Task t4 = generateTestTasks("Sell JDG to customer B", false);
+//		Task t5 = generateTestTasks("Pickup kids from daycare", false);
+		
 		Collection<Task> tasks = taskservice.filter("EAP");
 		Assert.assertEquals(2, tasks.size());
 		tasks = taskservice.filter("SELL");
 		Assert.assertEquals(2, tasks.size());
 		tasks = taskservice.filter("FeedBack");
 		Assert.assertEquals(2, tasks.size());
+		
+//		taskservice.delete(t1);
+//		taskservice.delete(t2);
+//		taskservice.delete(t3);
+//		taskservice.delete(t4);
+//		taskservice.delete(t5);
+	}
+
+	private Task generateTestTasks(String title, boolean done) {
+		Task task = new Task();
+		task.setTitle(title);
+		if(done) {
+			task.setCompletedOn(new Date());
+			task.setDone(true);
+		}
+		taskservice.insert(task);
+		return task;
 	}
 
 }
