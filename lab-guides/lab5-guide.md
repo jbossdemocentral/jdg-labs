@@ -23,7 +23,7 @@ Rewrite the application to only use JDG Client Server mode.
 
 1. Setup the lab environment
 1. Add dependencies to HotRod client
-1. Rewrite the `TaskServer` to use HotRod instead of client mode
+1. Rewrite the `TaskService` to use HotRod instead of client mode
 1. Remove dependencies to jdg-core
 
 ### Setup the lab environment
