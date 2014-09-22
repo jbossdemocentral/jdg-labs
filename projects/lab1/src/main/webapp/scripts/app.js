@@ -18,7 +18,7 @@ app.config(function ($routeProvider) {
 });
  
 app.controller('ListCtrl', function ($scope, $http) {
-    $http.get('/todo/rest/tasks').success(function (data) {
+    $http.get('/mytodo/rest/tasks').success(function (data) {
         $scope.tasks = data;
     }).error(function (data, status) {
         console.log('Error ' + data);
@@ -30,7 +30,7 @@ app.controller('ListCtrl', function ($scope, $http) {
         	task.completedOn = new Date();
         else
         	task.completedOn = null;
-        $http.put('/todo/rest/tasks/' + task.id, task).success(function (data) {
+        $http.put('/mytodo/rest/tasks/' + task.id, task).success(function (data) {
             console.log('status changed');
         }).error(function (data, status) {
             console.log('Error ' + data);
@@ -45,7 +45,7 @@ app.controller('CreateCtrl', function ($scope, $http, $location) {
  
     $scope.createTask = function () {
         console.log($scope.task);
-        $http.post('/todo/rest/tasks', $scope.task).success(function (data) {
+        $http.post('/mytodo/rest/tasks', $scope.task).success(function (data) {
             $location.path('/');
         }).error(function (data, status) {
             console.log('Error ' + data);

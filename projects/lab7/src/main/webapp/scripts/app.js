@@ -21,7 +21,7 @@ app.config(function ($routeProvider) {
 });
  
 app.controller('ListCtrl', function ($scope, $http) {
-    $http.get('/todo/rest/tasks').success(function (data) {
+    $http.get('/mytodo/rest/tasks').success(function (data) {
         $scope.tasks = data;
     }).error(function (data, status) {
         console.log('Error ' + data);
@@ -32,7 +32,7 @@ app.controller('ListCtrl', function ($scope, $http) {
         	task.completedOn = new Date();
         else
         	task.completedOn = null;
-        $http.put('/todo/rest/tasks/' + task.id, task).success(function (data) {
+        $http.put('/mytodo/rest/tasks/' + task.id, task).success(function (data) {
             console.log('status changed');
         }).error(function (data, status) {
             console.log('Error ' + data);
@@ -46,7 +46,7 @@ app.controller('CreateCtrl', function ($scope, $http, $location) {
     };
  
     $scope.createTask = function () {
-        $http.post('/todo/rest/tasks', $scope.task).success(function (data) {
+        $http.post('/mytodo/rest/tasks', $scope.task).success(function (data) {
             $location.path('/');
         }).error(function (data, status) {
             console.log('Error ' + data);
@@ -56,20 +56,20 @@ app.controller('CreateCtrl', function ($scope, $http, $location) {
 });
 
 app.controller('StatsCtrl', function ($scope, $http, $location) {
-	$http.get('/todo/rest/stats/os').success(function (data) {
+	$http.get('/mytodo/rest/stats/os').success(function (data) {
 		drawStatImage(data,"#os-chart");
 	}).error(function (data, status) {
 	    console.log('Error ' + data);
 	});	
 	
-	$http.get('/todo/rest/stats/browser').success(function (data) {
+	$http.get('/mytodo/rest/stats/browser').success(function (data) {
 		drawStatImage(data,"#browser-chart");
 	}).error(function (data, status) {
 	    console.log('Error ' + data);
 	});
 	
 	$scope.genTestData = function() {
-		$http.get('/todo/rest/stats/gentestdata').success(
+		$http.get('/mytodo/rest/stats/gentestdata').success(
 				function(data) {
 					window.location.reload();
 				}
