@@ -1,6 +1,5 @@
 package com.acme.todo.model;
 
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -9,9 +8,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
 public class Task implements Serializable {
@@ -20,9 +22,9 @@ public class Task implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id", updatable = false, nullable = false)
-	private Long id;
-	
+	@Column(name = "id", updatable = true, nullable = false)
+	private Integer id;
+
 	@Version
 	@Column(name = "version")
 	private int version;
@@ -39,11 +41,15 @@ public class Task implements Serializable {
 	@Temporal(TemporalType.DATE)
 	private Date completedOn;
 
-	public Long getId() {
+	@ManyToOne
+	@JsonIgnore
+	private User owner;
+
+	public Integer getId() {
 		return this.id;
 	}
 
-	public void setId(final Long id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 
@@ -112,14 +118,19 @@ public class Task implements Serializable {
 		this.completedOn = completedOn;
 	}
 
+	public User getOwner() {
+		return owner;
+	}
+
+	public void setOwner(User owner) {
+		this.owner = owner;
+	}
+
 	@Override
 	public String toString() {
-		String result = getClass().getSimpleName() + " ";
-		if (title != null && !title.trim().isEmpty())
-			result += "title: " + title;
-		result += ", done: " + done;
-		return result;
+		return "Task [id=" + id + ", version=" + version + ", title=" + title
+				+ ", done=" + done + ", createdOn=" + createdOn
+				+ ", completedOn=" + completedOn + ", owner=" + owner + "]";
 	}
-	
-	
+
 }

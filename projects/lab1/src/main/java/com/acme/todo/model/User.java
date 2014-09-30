@@ -24,9 +24,12 @@ public class User implements Serializable {
 	@Version
 	@Column(name = "version")
 	private int version = 0;
-
-	@OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+	
+	@OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL,mappedBy="owner")
 	private List<Task> tasks = new ArrayList<Task>();
+
+	public User() {
+	}
 
 	public String getUsername() {
 		return username;
@@ -36,6 +39,7 @@ public class User implements Serializable {
 		this.username = username;
 	}
 
+	
 	public int getVersion() {
 		return this.version;
 	}
@@ -78,10 +82,12 @@ public class User implements Serializable {
 	}
 
 	public List<Task> getTasks() {
-		return this.tasks;
+		return tasks;
 	}
 
-	public void setTasks(final List<Task> tasks) {
+	public void setTasks(List<Task> tasks) {
 		this.tasks = tasks;
 	}
+
+	
 }

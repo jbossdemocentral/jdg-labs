@@ -1,6 +1,5 @@
 package com.acme.todo;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -14,7 +13,6 @@ import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaQuery;
 
 import org.infinispan.Cache;
 
@@ -35,11 +33,8 @@ public class TaskService {
 	EntityManager em;
 
 	@Inject
-	@DefaultUser
-	User currentUser;
-
-	@Inject
 	UserService userService;
+
 
 	@Inject
 	Cache<String, User> cache;
@@ -47,15 +42,17 @@ public class TaskService {
 	Logger log = Logger.getLogger(this.getClass().getName());
 
 	/**
-	 * This methods should return all cache entries, currently contains mockup
+	 * This methods should return the users all tasks
 	 * code.
 	 * 
 	 * @return
 	 * 
 	 *         DONE: Replace implementation with Cache.values()
 	 */
-	public Collection<Task> findAll() {
-		List<Task> tasks = cache.get(currentUser.getUsername()).getTasks();
+	public List<Task> findAll() {
+		
+		List<Task> tasks = userService.getCurrentUser().getTasks();
+
 		Collections.sort(tasks, new Comparator<Task>() {
 			@Override
 			public int compare(Task o1, Task o2) {
@@ -80,13 +77,14 @@ public class TaskService {
 	 *            object
 	 */
 	public void insert(Task task) {
-		if(task.getCreatedOn()==null) {
+		if (task.getCreatedOn() == null) {
 			task.setCreatedOn(new Date());
 		}
+		task.setOwner(userService.getCurrentUser());
 		em.persist(task);
-		currentUser.getTasks().add(task);
-		cache.replace(currentUser.getUsername(), currentUser);
+		userService.deleteUserFromCache();
 	}
+
 
 	/**
 	 * This method persists an existing Task instance
@@ -97,12 +95,17 @@ public class TaskService {
 	 *            Cache
 	 */
 	public void update(Task task) {
-		Task t2 = em.merge(task);
-		int index = currentUser.getTasks().indexOf(task);
-		currentUser.getTasks().set(index, t2);
-		em.detach(t2);
-		cache.replace(currentUser.getUsername(), currentUser);
+		Task dbTask = em.find(Task.class, task.getId());
+		if(dbTask!=null){
+			dbTask.setTitle(task.getTitle());
+			dbTask.setDone(task.isDone());
+			dbTask.setCreatedOn(task.getCreatedOn());
+			dbTask.setCompletedOn(task.getCompletedOn());
+		}
+		em.persist(dbTask);
+		userService.deleteUserFromCache();
 	}
+	
 
 	/**
 	 * This method deletes an Task from the persistence store
@@ -112,9 +115,12 @@ public class TaskService {
 	 *            DONE: Add implementation to also delete the object from the
 	 *            Cache
 	 */
-	public void delete(Task task) {
-		currentUser.getTasks().remove(task);	
-		cache.replace(currentUser.getUsername(), currentUser);
+	public void delete(Integer taskId) {
+		em.createQuery("DELETE FROM Task t WHERE t.id = :id")
+        .setParameter("id", taskId)
+        .executeUpdate();
+		userService.deleteUserFromCache();
+
 	}
 
 	/**

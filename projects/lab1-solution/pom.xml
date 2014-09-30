@@ -4,7 +4,7 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.redhat.jdg.workshop</groupId>
-	<artifactId>lab1-solution</artifactId>
+	<artifactId>lab1</artifactId>
 	<version>1.0.0</version>
 	<packaging>war</packaging>
 	<properties>
@@ -114,7 +114,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>todo</finalName>
+		<finalName>mytodos</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>

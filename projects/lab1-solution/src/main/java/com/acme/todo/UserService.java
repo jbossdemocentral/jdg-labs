@@ -3,8 +3,6 @@ package com.acme.todo;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -22,52 +20,61 @@ public class UserService {
 
 	@PersistenceContext
 	EntityManager em;
-	
+
 	@Inject
 	Cache<String, User> cache;
 
 	/**
-	 * This metod produces a default user for labs, please note this behavior is
-	 * specfic to the JDG labs. In a real application userid would probably be
-	 * retrieved from the user creditials, but since this this app does not
+	 * This method shoudl return the current user but is currently hard wired to
+	 * return the default user the for labs, please note this behavior is
+	 * specific to the JDG labs. In a real application the user would probably
+	 * be retrieved from the user credentials, but since this this app does not
 	 * provide authentication we use a default user
 	 * 
 	 * @return
 	 */
-	@Produces
-	@DefaultUser
-	public User getDefaultUser() {
-		// First try to find a user in the database
+	public User getCurrentUser() {
+		return this.getDefaultUser();
+	}
 
-		log.info("### Getting default user from the database");
+	/**
+	 * This method returns a default user for labs, please note this behavior is
+	 * specific to the JDG labs. In a real application userid would probably be
+	 * retrieved from the user credentials, but since this this app does not
+	 * provide authentication we use a default user
+	 * 
+	 * @return
+	 */
+	private User getDefaultUser() {
 		User defaultUser = cache.get(DEFAULT_USERNAME);
-		
-		if (defaultUser==null) {
+		if (defaultUser == null) {
 			defaultUser = getUserFromUsername(DEFAULT_USERNAME);
-			// if defaultUser is still null it doesn't exists so we create one
 			if (defaultUser == null) {
+				log.info("Default user doesn't exists. Creating default user");
 				defaultUser = createDefaultUser();
 			}
 			cache.put(defaultUser.getUsername(), defaultUser);
 		}
 		return defaultUser;
 	}
+	
+	
+	
+	public void deleteUserFromCache() {
+		cache.remove(this.getCurrentUser().getUsername());
+	}
 
-	public User createDefaultUser() {
+	private User createDefaultUser() {
 		log.info("### Creating a default user");
 		User defaultUser = new User();
 		defaultUser.setUsername(DEFAULT_USERNAME);
 		em.persist(defaultUser);
 		return defaultUser;
 	}
-	
-	public User getUserFromUsername(String id) {
+
+	private User getUserFromUsername(String id) {
+		log.info("Getting user from the database");
 		return em.find(User.class, id);
-	}
-	
-	public void createUser(User user) {
-		em.persist(user);
-		cache.put(user.getUsername(),user);
 	}
 
 }

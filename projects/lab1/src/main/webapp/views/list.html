@@ -1,18 +1,31 @@
-<h2>All Todos <a class="btn btn-primary pull-right" href="#/create"><i
-        class="icon-plus-sign icon-white"></i> New Task</a></h2>
+<!-- Not used in lab1 
+<div style="width: 300px" class="pull-right">
+  <div class="input-group pull-right"> 
+    <span class="input-group-btn">
+      <input type="text" class="form-control" style="margin-top: 1px">
+      <button class="btn btn-default glyphicon glyphicon-search" />
+    </span>
+  </div>
+</div>
+ -->
+<h2>My Todos</h2>
 
+
+<br/>
+<ul class="nav nav-tabs" role="tablist">
+  <li class="active"><a href="#">Personal Tasks</a></li>
+	<!-- <li><a class="glyphicon glyphicon-plus pull-right" href="#/create"/></li> --> 
+</ul>
+
+<br/>
+<div>
 <table class="table table-hover">
     <tr>
-        <th>
-            Title
-        </th>
-        <th>
-            Created On
-        </th>
-        <th>
-            Completed On
-        </th>
-        <th>Done</th>
+        <th>Title</th>
+        <th>Created On</th>
+        <th>Completed On</th>
+        <th>Status</th>
+        <th>Action</th>
     </tr>
     <tr class="success-{{task.done}}" ng-repeat="task in tasks track by $index">
         <td>
@@ -27,5 +40,20 @@
         <td>
             <input type="checkbox" ng-change="taskStatusChanged(task)" ng-value="task.done" ng-model="task.done">
         </td>
+        <td>
+        	<div class="btn-group">
+			  <a href="#/list" ng-click="deleteTask(task)"><button type="button" class="btn btn-default glyphicon glyphicon-trash"/></a>
+			  <!-- <a href="#/edit" ng-click="editTask(task)"><button type="button" class="btn btn-default glyphicon glyphicon-pencil"/></a> -->
+			</div>
+		</td>
+    </tr>
+    <tr>
+    	<td colspan="4"/>
+    	<td>
+    		<div class="btn-group">
+    			<a class="btn btn-default glyphicon glyphicon-plus pull-right" href="#/create"/>
+    		</div>
+    	</td>
     </tr>
 </table>
+</div>
