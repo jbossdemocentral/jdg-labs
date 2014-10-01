@@ -104,7 +104,14 @@ pushd $MVN_REPO/jboss-eap-6.3.0.GA-maven-repository > /dev/null
 eap63_mvn_repo_path=`pwd`
 popd > /dev/null
 
-sed -i '' "s;file:///path/to/repo/jboss-datagrid-maven-repository;file://${jdg_mvn_repo_path};g" target/settings.xml
-sed -i '' "s;file:///path/to/repo/jboss-eap-6.3.0.GA-maven-repository;file://${eap63_mvn_repo_path};g" target/settings.xml
+if [ "$(uname)" =  "Linux" ]
+then 
+	echo "Using Linux style sed commands"
+	sed -i "s;file:///path/to/repo/jboss-datagrid-maven-repository;file://${jdg_mvn_repo_path};g" target/settings.xml
+	sed -i "s;file:///path/to/repo/jboss-eap-6.3.0.GA-maven-repository;file://${eap63_mvn_repo_path};g" target/settings.xml
+else
+	sed -i '' "s;file:///path/to/repo/jboss-datagrid-maven-repository;file://${jdg_mvn_repo_path};g" target/settings.xml
+	sed -i '' "s;file:///path/to/repo/jboss-eap-6.3.0.GA-maven-repository;file://${eap63_mvn_repo_path};g" target/settings.xml
+fi
 
 echo "Done setting up environment"
