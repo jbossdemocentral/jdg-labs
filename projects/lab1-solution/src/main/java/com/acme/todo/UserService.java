@@ -2,6 +2,8 @@ package com.acme.todo;
 
 import java.util.logging.Logger;
 
+import javax.annotation.Resource;
+import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -21,60 +23,62 @@ public class UserService {
 	@PersistenceContext
 	EntityManager em;
 
+	@Resource(mappedName = "java:comp/EJBContext")
+	protected SessionContext sessionContext;
+	
 	@Inject
 	Cache<String, User> cache;
 
 	/**
-	 * This method shoudl return the current user but is currently hard wired to
-	 * return the default user the for labs, please note this behavior is
-	 * specific to the JDG labs. In a real application the user would probably
-	 * be retrieved from the user credentials, but since this this app does not
-	 * provide authentication we use a default user
+	 * This method returns the current user according to the caller principals.
 	 * 
 	 * @return
 	 */
 	public User getCurrentUser() {
-		return this.getDefaultUser();
+		String username = sessionContext.getCallerPrincipal().getName();
+		User user = cache.get(DEFAULT_USERNAME);
+
+		if (user == null) {
+			user = getUserFromUsername(username);
+			if (user == null) {
+				user = createUser(username);
+			}
+			cache.put(username,user);
+		}
+		return user;
+	}
+	
+	/**
+	 * This method will create a database record with the username provided as
+	 * principal
+	 * 
+	 * @param username
+	 * @return
+	 */
+	private User createUser(String username) {
+		log.info("Creating a user with username " + username);
+		User user = new User();
+		user.setUsername(username);
+		em.persist(user);
+		return user;
 	}
 
 	/**
-	 * This method returns a default user for labs, please note this behavior is
-	 * specific to the JDG labs. In a real application userid would probably be
-	 * retrieved from the user credentials, but since this this app does not
-	 * provide authentication we use a default user
+	 * This method will get the user object from the database. If no user exists
+	 * null is returned.
 	 * 
+	 * @param username
 	 * @return
 	 */
-	private User getDefaultUser() {
-		User defaultUser = cache.get(DEFAULT_USERNAME);
-		if (defaultUser == null) {
-			defaultUser = getUserFromUsername(DEFAULT_USERNAME);
-			if (defaultUser == null) {
-				log.info("Default user doesn't exists. Creating default user");
-				defaultUser = createDefaultUser();
-			}
-			cache.put(defaultUser.getUsername(), defaultUser);
-		}
-		return defaultUser;
+	private User getUserFromUsername(String username) {
+		log.info("Getting user " + username + " from the database.");
+		return em.find(User.class, username);
 	}
-	
-	
+
 	
 	public void deleteUserFromCache() {
-		cache.remove(this.getCurrentUser().getUsername());
-	}
-
-	private User createDefaultUser() {
-		log.info("### Creating a default user");
-		User defaultUser = new User();
-		defaultUser.setUsername(DEFAULT_USERNAME);
-		em.persist(defaultUser);
-		return defaultUser;
-	}
-
-	private User getUserFromUsername(String id) {
-		log.info("Getting user from the database");
-		return em.find(User.class, id);
+		cache.remove(sessionContext.getCallerPrincipal().getName());
+		
 	}
 
 }

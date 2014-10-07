@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -16,13 +14,12 @@ import javax.persistence.PersistenceContext;
 import com.acme.todo.model.Task;
 
 /**
- * This class is used to query, insert or update Task object.
+ * This class is used to list, insert, update or delete Task object.
  * 
  * @author tqvarnst
  * 
  */
 @Stateless
-@TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class TaskService {
 
 	@PersistenceContext
