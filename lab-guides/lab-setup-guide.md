@@ -12,7 +12,7 @@ Follow this guide to setup the lab environment for JDG labs
   * OpenJDK or Oracle JDG using 1.6 or 1.7
   * Apache Maven (installed and on the path)
   * JBoss Developer Studion 7.X
-* Download [jdg-labs.zip](https://mojo.redhat.com/docs/DOC-987628)
+* Download [jdg-labs.zip](https://mojo.redhat.com/docs/DOC-987628) or clone this project 
 * Download the following JBoss software as zip files (used later in the labs)
   * `jboss-datagrid-6.3.0-eap-modules-library.zip`
   * `jboss-datagrid-6.3.0-maven-repository.zip`
