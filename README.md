@@ -27,4 +27,5 @@ To run the labs first start by reading the lab-setup-guide.md [here](lab-guides/
 After that console the labX-guide.md for each lab in lab-guides directory.
 
 Good luck!!
+
 Thomas
