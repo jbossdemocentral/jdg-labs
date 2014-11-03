@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -20,6 +22,7 @@ import com.acme.todo.model.Task;
  * 
  */
 @Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class TaskService {
 
 	@PersistenceContext
@@ -36,7 +39,6 @@ public class TaskService {
 	 * 
 	 * @return
 	 * 
-	 *         DONE: Replace implementation with Cache.values()
 	 */
 	public List<Task> findAll() {
 		
@@ -62,8 +64,7 @@ public class TaskService {
 	 * 
 	 * @param task
 	 * 
-	 *            DONE: Add implementation to also update the Cache with the new
-	 *            object
+	 *            FIXME: Insert the new object into the cache as well
 	 */
 	public void insert(Task task) {
 		if (task.getCreatedOn() == null) {
@@ -79,18 +80,15 @@ public class TaskService {
 	 * 
 	 * @param task
 	 * 
-	 *            DONE: Add implementation to also update the Object in the
-	 *            Cache
+	 *            FIXME: Add implementation to also update the task object in the cache
 	 */
 	public void update(Task task) {
-		Task dbTask = em.find(Task.class, task.getId());
-		if(dbTask!=null){
-			dbTask.setTitle(task.getTitle());
-			dbTask.setDone(task.isDone());
-			dbTask.setCreatedOn(task.getCreatedOn());
-			dbTask.setCompletedOn(task.getCompletedOn());
-		}
-		em.persist(dbTask);
+		em.createQuery("UPDATE Task t SET t.done=:done, t.createdOn=:createdOn, t.completedOn=:completedOn WHERE t.id=:id")
+	 	.setParameter("done", task.isDone())
+	 	.setParameter("createdOn", task.getCreatedOn())
+	 	.setParameter("completedOn", task.getCompletedOn())
+	 	.setParameter("id", task.getId())
+	 	.executeUpdate();
 	}
 	
 

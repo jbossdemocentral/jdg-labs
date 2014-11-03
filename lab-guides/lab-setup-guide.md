@@ -13,12 +13,9 @@ Follow this guide to setup the lab environment for JDG labs
   * Apache Maven (installed and on the path)
   * JBoss Developer Studion 7.X
 * Download the following JBoss software as zip files (used later in the labs)
-  * `jboss-datagrid-6.3.0-eap-modules-hotrod-java-client.zip`
   * `jboss-datagrid-6.3.0-eap-modules-library.zip`
   * `jboss-datagrid-6.3.0-maven-repository.zip`
-  * `jboss-datagrid-6.3.0-quickstarts.zip`
   * `jboss-datagrid-6.3.0-server.zip`
-  * `jboss-eap-6.2.4-full-maven-repository.zip`
   * `jboss-eap-6.3.0-maven-repository.zip`
   * `jboss-eap-6.3.0-quickstarts.zip`
   * `jboss-eap-6.3.0.zip`

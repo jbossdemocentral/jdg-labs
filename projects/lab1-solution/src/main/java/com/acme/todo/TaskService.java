@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -14,10 +13,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.infinispan.Cache;
-
 import com.acme.todo.model.Task;
-import com.acme.todo.model.User;
 
 /**
  * This class is used to query, insert or update Task object.
@@ -34,10 +30,6 @@ public class TaskService {
 
 	@Inject
 	UserService userService;
-
-
-	@Inject
-	Cache<String, User> cache;
 
 	Logger log = Logger.getLogger(this.getClass().getName());
 
@@ -73,8 +65,7 @@ public class TaskService {
 	 * 
 	 * @param task
 	 * 
-	 *            DONE: Add implementation to also update the Cache with the new
-	 *            object
+	 *            DONE: Insert the new object into the cache as well
 	 */
 	public void insert(Task task) {
 		if (task.getCreatedOn() == null) {
@@ -82,7 +73,7 @@ public class TaskService {
 		}
 		task.setOwner(userService.getCurrentUser());
 		em.persist(task);
-		userService.deleteUserFromCache();
+		userService.getCurrentUser().getTasks().add(task);
 	}
 
 
@@ -91,19 +82,20 @@ public class TaskService {
 	 * 
 	 * @param task
 	 * 
-	 *            DONE: Add implementation to also update the Object in the
+	 *            DONE: Add implementation to also update the task object in the cache
 	 *            Cache
 	 */
 	public void update(Task task) {
-		Task dbTask = em.find(Task.class, task.getId());
-		if(dbTask!=null){
-			dbTask.setTitle(task.getTitle());
-			dbTask.setDone(task.isDone());
-			dbTask.setCreatedOn(task.getCreatedOn());
-			dbTask.setCompletedOn(task.getCompletedOn());
-		}
-		em.persist(dbTask);
-		userService.deleteUserFromCache();
+		em.createQuery("UPDATE Task t SET t.done=:done, t.createdOn=:createdOn, t.completedOn=:completedOn WHERE t.id=:id")
+		 	.setParameter("done", task.isDone())
+		 	.setParameter("createdOn", task.getCreatedOn())
+		 	.setParameter("completedOn", task.getCompletedOn())
+		 	.setParameter("id", task.getId())
+		 	.executeUpdate();
+		List<Task> cachedTasks = userService.getCurrentUser().getTasks();
+		int index = cachedTasks.indexOf(task);
+		cachedTasks.remove(index);
+		cachedTasks.add(index, task);
 	}
 	
 
@@ -117,20 +109,10 @@ public class TaskService {
 	 */
 	public void delete(Integer taskId) {
 		em.createQuery("DELETE FROM Task t WHERE t.id = :id")
-        .setParameter("id", taskId)
-        .executeUpdate();
-		userService.deleteUserFromCache();
-
+	        .setParameter("id", taskId)
+	        .executeUpdate();
+		Task fakeTask = new Task();
+		fakeTask.setId(taskId);
+		userService.getCurrentUser().getTasks().remove(fakeTask);
 	}
-
-	/**
-	 * This method is called after construction of this SLSB.
-	 * 
-	 * DONE: Replace implementation to read existing Tasks from the database and
-	 * add them to the cache
-	 */
-	@PostConstruct
-	public void startup() {
-	}
-
 }

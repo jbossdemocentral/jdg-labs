@@ -87,6 +87,17 @@ app.controller('EditCtrl', function ($scope, $http, $location) {
     };
 });
 
+app.directive('autoFocus', function($timeout) {
+    return {
+        restrict: 'AC',
+        link: function(_scope, _element) {
+            $timeout(function(){
+                _element[0].focus();
+            }, 0);
+        }
+    };
+});
+
 var getBaseUrl = function($location) {
 	return '/' + $location.absUrl().substr(7).split('/')[1];
 };

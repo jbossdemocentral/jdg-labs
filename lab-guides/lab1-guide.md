@@ -33,8 +33,9 @@ database without changing the UI, REST service or data model object.
 The main steps in lab1 is to:
 
 1. Configure the environment for lab1
-1. Run the JUnit/Arquillian tests (performance test should fail)
+1. Run the JUnit/Arquillian tests
 1. Install the mockup application and verify that is working
+1. Run the performance test (should fail)
 1. Add dependencies to the maven project and to the WAR file for JDG
 1. Add dependencies to the JDG modules in EAP via jboss-deployment-structure.xml
 1. Inject a local Cache into TaskService class and implement the logic to cache findAll.
@@ -63,17 +64,19 @@ To assist with setting up the lab environment we have provided a shell script th
 
         $ cd projects/lab1
         
-1. Run the JUnit test either in JBDS or by using command line. To run the test the ```arquillian-jbossas-remote-7``` profile will have to be activated.
+1. Run the JUnit test either in JBDS or by using command line. To run the test the ```runtest``` profile will have to be activated.
 
-		$ mvn -P arquillian-jbossas-remote-7 test
+		$ mvn test -Pruntest
+	
+	Or run it inside JBoss Developer Studio. 
 		
-	The test should FAIL because 1000 reads on H2 data base takes longer than 400ms. Using JBoss Data Grid we should be able to do 1000 reads well under 400 ms. 	
+	Notice that one of the tests are skipped. This is a performance test that we will use later.
 		
 1. Build and deploy the project
 
         $ mvn package jboss-as:deploy
         
-1. Verify in a browser that application deployed nice successfully by opening [http://localhost:8080/todo](http://localhost:8080/todo) in a browser. 
+1. Verify in a browser that application deployed nice successfully by opening [http://localhost:8080/mytodos](http://localhost:8080/mytodos) in a browser and log in with username ```johndoe``` and password ```johndoe-123```. 
 
 1. Click around and verify that you can add tasks and complete tasks etc.
 
@@ -81,8 +84,23 @@ To assist with setting up the lab environment we have provided a shell script th
 	
 1. Go thourgh the code a bit to understand the application. 
 
+1. Open ```src/test/java/com/acme/todo/TaskServiceTest.java``` and navigate to the last test. Uncomment the @Ignore and run the tests again. 
 
-### Add dependencies to the maven project
+		$ mvn test -P runtest
+		
+	This time the tests should fail. The round trip to the database causes us to failing to meet the performance requirements. 
+	
+	Record the total execution timea and add the @Ignore again.
+
+
+## Using JDG to improve the performance and avoiding round trip to the database.
+
+The performance test that you executed are not really a real life scenario. For startes you are running them on your laptop and you are running them using an in-memory datbase. In real life we would probably use a CI environment and deploy the application to a proper test environment using a real database, however that are beyond the scope of this lab.
+
+However in real life even the quickest remote SQL query would probably take 5-10ms so 1000 queries as we where running in the test would probably translate to something like 5-10 sek. Our goal is to achieve a total execution time below 400 ms for 1000 request. 
+
+
+### Add compile and runtime dependencies
 In this step-by-step section we will add dependecies to the maven project so that we can later on add the code to store tasks in JDG. 
 
 1. Open the maven pom.xml file in project/todo in an editor or IDE and add the following in the dependencyManagement section
@@ -132,156 +150,100 @@ In this step-by-step section we will add dependecies to the maven project so tha
 			</deployment>
 		</jboss-deployment-structure>
 
-1. Run the build and deploy command again
+1. Run the tests to make sure that the project compiles and deploys
 
-		$ mvn package jboss-as:deploy
+		$ mvn test -Pruntest
 		
 1. Make sure that the above command are succesfull and you are done with this section.
 
-###Inject a local Cache into TaskService class and implement the logic to findAll, create, update. 
+That is all that is needed to add the core and cdi dependencies to the development and runtime. We are now ready to start using JBoss Data Grid in the code.
 
-1. Open TaskSevice.java in an editor or IDE and add the following as a field 
-to the class
+
+### Update the UserService class to use the cache
+
+1. Open ```src/main/java/com/acme/todo/UserService.java``` in JBoss Developer Studio or IDE of your choice
+1. Add the ```Cache``` field to the class and use CDI to inject it.
 
 		@Inject
-		Cache<Long, Task> cache;
-		
+		Cache<String, User> cache;
+	
 	you also need to add the follwing import statement if you IDE doesn't fix that
 	
+		import javax.inject.Inject;
 		import org.infinispan.Cache;
-		import org.jboss.infinispan.demo.model.Task;
 		
-1. Change the implementation of the findAll method to look like this:
+1. Update the ```getCurrentUser()``` method to first check if the user exists in the cache and if not add it to the cache.
 
-		public Collection<Task> findAll() {
-			return cache.values();
+		public User getCurrentUser() {
+			String username = sessionContext.getCallerPrincipal().getName();
+			User user = cache.get(username);
+			if (user == null) {
+				user = getUserFromUsername(username);
+				if (user == null) {
+					user = createUser(username);
+				}
+				cache.put(username,user);
+			}
+			return user;
 		}
-		
-1. Change the create method to look like this:
+
+1. Run the tests to make sure that the project compiles and deploys
+
+		$ mvn test -Pruntest
+	
+	Make sure that everything deploys and that ```should_be_deployed``` and ```testRetrivingTasks``` are successful. However ```testInsertTask``` fails. That's because even if we succesfully can add tasks to the database we will either have to invalidate the object in the cache or update it. 
+
+###  Fix so that update/insert and delete also are relflected in the cache
+
+1. Open ```src/main/java/com/acme/todo/TaskService.java``` 	
+1. Change the insert method to look like this:
 
 		public void insert(Task task) {
-			if(task.getCreatedOn()==null) {
+			if (task.getCreatedOn() == null) {
 				task.setCreatedOn(new Date());
 			}
+			task.setOwner(userService.getCurrentUser());
 			em.persist(task);
-			cache.put(task.getId(),task);
+			userService.getCurrentUser().getTasks().add(task);
 		}
 
 1.	Add the implementation of the update method as shown below:
 
 		public void update(Task task) {
-			em.merge(task);
-			cache.replace(task.getId(),task);
+			em.createQuery("UPDATE Task t SET t.done=:done, t.createdOn=:createdOn, t.completedOn=:completedOn WHERE t.id=:id")
+			 	.setParameter("done", task.isDone())
+			 	.setParameter("createdOn", task.getCreatedOn())
+			 	.setParameter("completedOn", task.getCompletedOn())
+			 	.setParameter("id", task.getId())
+			 	.executeUpdate();
+			List<Task> cachedTasks = userService.getCurrentUser().getTasks();
+			int index = cachedTasks.indexOf(task);
+			cachedTasks.remove(index);
+			cachedTasks.add(index, task);
 		}
 		
 1.	Add the implementation of the delete method as shown below:
 
-		public void delete(Task task) {
-			em.remove(em.getReference(task.getClass(),task.getId()));
-			cache.remove(task.getId());
+		public void delete(Integer taskId) {
+			em.createQuery("DELETE FROM Task t WHERE t.id = :id")
+		        .setParameter("id", taskId)
+		        .executeUpdate();
+			Task fakeTask = new Task();
+			fakeTask.setId(taskId);
+			userService.getCurrentUser().getTasks().remove(fakeTask);
 		}
 
-1. We also need fill the cache with the existing values in the database using by adding the following method:
-		
-		@PostConstruct
-		public void startup() {
-			
-			log.info("### Querying the database for tasks!!!!");
-			final CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-			final CriteriaQuery<Task> criteriaQuery = criteriaBuilder.createQuery(Task.class);
-		
-			Root<Task> root = criteriaQuery.from(Task.class);
-			criteriaQuery.select(root);
-			Collection<Task> resultList = em.createQuery(criteriaQuery).getResultList();
-			
-			for (Task task : resultList) {
-				this.insert(task);
-			}
-			
-		}
-
-1. Next make sure that the TaskServiceTest class adds the jboss-deployment-structure.xml, which should look like this:
-
-		.addAsWebInfResource(new File("src/main/webapp/WEB-INF/jboss-deployment-structure.xml"))
 
 1. Run the JUnit test to see that everything works as expected
 
-1. Your TaskService.java implementation should look something like this:
+		$ mvn test -Pruntest
+		
+	This time all the test should pass. 
 
-		package org.jboss.infinispan.demo;
-		
-		import java.util.Collection;
-		import java.util.Date;
-		import java.util.logging.Logger;
-		
-		import javax.annotation.PostConstruct;
-		import javax.ejb.Stateless;
-		import javax.inject.Inject;
-		import javax.persistence.EntityManager;
-		import javax.persistence.PersistenceContext;
-		import javax.persistence.criteria.CriteriaBuilder;
-		import javax.persistence.criteria.CriteriaQuery;
-		import javax.persistence.criteria.Root;
-		
-		import org.infinispan.Cache;
-		import org.jboss.infinispan.demo.model.Task;
-		
-		@Stateless
-		public class TaskService {
-		
-			@PersistenceContext
-		    EntityManager em;
-			
-			@Inject
-			Cache<Long,Task> cache;
-			
-			Logger log = Logger.getLogger(this.getClass().getName());
-		
-			/**
-			 * This methods should return all cache entries, currently contains mockup code. 
-			 * @return
-			 */
-			public Collection<Task> findAll() {
-				return cache.values();
-			}
-			
-			public void insert(Task task) {
-				if(task.getCreatedOn()==null) {
-					task.setCreatedOn(new Date());
-				}
-				em.persist(task);
-				cache.put(task.getId(),task);
-			}
-		
-			
-			public void update(Task task) {
-				em.merge(task);
-				cache.replace(task.getId(),task);
-			}
-			
-			@PostConstruct
-			public void startup() {
-				
-				log.info("### Querying the database for tasks!!!!");
-				final CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-				final CriteriaQuery<Task> criteriaQuery = criteriaBuilder.createQuery(Task.class);
-			
-				Root<Task> root = criteriaQuery.from(Task.class);
-				criteriaQuery.select(root);
-				Collection<Task> resultList = em.createQuery(criteriaQuery).getResultList();
-				
-				for (Task task : resultList) {
-					this.insert(task);
-				}
-				
-			}
-			
-		}
-
-1. Hold on with deploy to the application server. There are one issue with the current setup that we will solve in the next
+1. Hold on with deploy to the application server. There are one issue with the current setup that we will solve in the next session.
 
 ###Configure the cache programatically
-What just happend is that we have implemented a local cache solution where we can offload the database based on the default configuraiton. We haven't yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.
+What just happend is that we have implemented a local cache solution where we can offload the database based on the default configuraiton. However we have not configured the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.
 
 Below is a code snipped that shows how to create configuration objects for the cache.
 
@@ -309,15 +271,15 @@ Since we are using CDI in our example we can actually override the cache manager
 		
 Then we put this class somewhere in our classpath (or even better in our source) and add the configuration code from above in it. 
 
-1. Add a Config class in package org.jboss.infinispan.demo that looks loke this:
+1. Add the following implementation to the src/main/java/com/acme/todo/Config.java file
 
-		package org.jboss.infinispan.demo;
-		
+		package com.acme.todo;
+
 		import javax.annotation.PreDestroy;
 		import javax.enterprise.context.ApplicationScoped;
 		import javax.enterprise.inject.Default;
 		import javax.enterprise.inject.Produces;
-		
+
 		import org.infinispan.configuration.cache.Configuration;
 		import org.infinispan.configuration.cache.ConfigurationBuilder;
 		import org.infinispan.configuration.global.GlobalConfiguration;
@@ -325,11 +287,20 @@ Then we put this class somewhere in our classpath (or even better in our source)
 		import org.infinispan.eviction.EvictionStrategy;
 		import org.infinispan.manager.DefaultCacheManager;
 		import org.infinispan.manager.EmbeddedCacheManager;
-		
+		import org.infinispan.transaction.LockingMode;
+		import org.infinispan.transaction.TransactionMode;
+
+		/**
+		 * This is Class will be used to configure JDG Cache
+		 * @author tqvarnst
+		 * 
+		 * DONE: Add implementation that Produces configuration for the default cache
+		 *
+		 */
 		public class Config {
-		
+
 			private EmbeddedCacheManager manager;
-		
+
 			@Produces
 			@ApplicationScoped
 			@Default
@@ -343,23 +314,20 @@ Then we put this class somewhere in our classpath (or even better in our source)
 					Configuration loc = new ConfigurationBuilder().jmxStatistics()
 							.enable() // Enable JMX statistics
 							.eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+							.transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
 							.build();
 					manager = new DefaultCacheManager(glob, loc, true);
 				}
 				return manager;
 			}
-		
+
 			@PreDestroy
 			public void cleanUp() {
 				manager.stop();
 				manager = null;
 			}
-		}
-		
-1. Soon we are ready to deploy the application, but first we need to make sure that test passes. Before we run the test, lets check that TaskServiceTest.java add the Config class to the test, liek this:
+		}	
 
-		.addClass(Config.class)
-		
 1. Run the JUnit test by right clicking TaskServiceTest.java and select Run As ... -> JUnit Test
 
 	![Image of how to run junit test](images/lab1-image1.png)
@@ -368,6 +336,4 @@ Then we put this class somewhere in our classpath (or even better in our source)
 
 		$ mvn package jboss-as:deploy
 		
-1. Test the application by opening a browser window to [http://localhost:8080/todo]()
-
-1. Congratulations you are done with lab1. If you finished early try to add transactional behaviour the the cache or look at the solution for more info.
+1. Test the application by opening a browser window to [http://localhost:8080/mytodos](http://localhost:8080/mytodos) in a browser and log in with username ```johndoe``` and password ```johndoe-123```.

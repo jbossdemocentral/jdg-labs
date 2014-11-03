@@ -3,6 +3,7 @@ package com.acme.todo;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
@@ -16,6 +17,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -114,6 +116,36 @@ public class TaskServiceTest {
 		}
 		taskservice.delete(task.getId());
 		Assert.assertEquals(orgsize, taskservice.findAll().size());
+	}
+
+	@Test
+	@Ignore
+	@InSequence(5)
+	public void testReadPerformance() {
+		
+		int numberOfTasks = 100;
+		int numberOfReads = 1000;
+		int timeAllowed = 400;
+		
+
+		//Creating tasks
+		for (int i = 0; i < numberOfTasks; i++) {
+			Task task = new Task();
+			task.setTitle("This is the " + i + " test task");
+			task.setCreatedOn(new Date());
+			taskservice.insert(task);
+		}
+		long startTime = System.currentTimeMillis();
+		//Executing reads
+		for (int i = 0; i < numberOfReads; i++) {
+			taskservice.findAll();
+		}
+		long stopTime = System.currentTimeMillis();
+
+		log.info("#### Executeing 1000 reads took " + (stopTime - startTime)
+				+ " ms");
+		
+		Assert.assertTrue(String.format("Failed to execute %s reads within %s ms. Actual execution time was %d ms",numberOfReads,timeAllowed,(stopTime - startTime)),(stopTime - startTime) < timeAllowed);
 	}
 
 }

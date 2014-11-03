@@ -13,8 +13,6 @@ import com.acme.todo.model.User;
 @Stateless
 public class UserService {
 
-	public static final String DEFAULT_USERNAME = "defaultUser";
-
 	Logger log = Logger.getLogger(this.getClass().getName());
 
 	@PersistenceContext
@@ -23,10 +21,14 @@ public class UserService {
 	@Resource(mappedName = "java:comp/EJBContext")
 	protected SessionContext sessionContext;
 
+	/**
+	 * FIXME: Inject a cache object
+	 */
 
 	/**
 	 * This method returns the current user according to the caller principals.
 	 * 
+	 * FIXME: Before getting using from the database try getting him from the cache
 	 * @return
 	 */
 	public User getCurrentUser() {

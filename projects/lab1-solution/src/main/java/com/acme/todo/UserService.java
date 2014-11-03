@@ -16,8 +16,6 @@ import com.acme.todo.model.User;
 @Stateless
 public class UserService {
 
-	public static final String DEFAULT_USERNAME = "defaultUser";
-
 	Logger log = Logger.getLogger(this.getClass().getName());
 
 	@PersistenceContext
@@ -26,17 +24,22 @@ public class UserService {
 	@Resource(mappedName = "java:comp/EJBContext")
 	protected SessionContext sessionContext;
 	
+	/**
+	 * DONE: Inject a cache object
+	 */
 	@Inject
 	Cache<String, User> cache;
 
 	/**
 	 * This method returns the current user according to the caller principals.
 	 * 
+	 * DONE: Before getting using from the database try getting him from the cache
+	 * 
 	 * @return
 	 */
 	public User getCurrentUser() {
 		String username = sessionContext.getCallerPrincipal().getName();
-		User user = cache.get(DEFAULT_USERNAME);
+		User user = cache.get(username);
 
 		if (user == null) {
 			user = getUserFromUsername(username);
@@ -73,12 +76,6 @@ public class UserService {
 	private User getUserFromUsername(String username) {
 		log.info("Getting user " + username + " from the database.");
 		return em.find(User.class, username);
-	}
-
-	
-	public void deleteUserFromCache() {
-		cache.remove(sessionContext.getCallerPrincipal().getName());
-		
 	}
 
 }
