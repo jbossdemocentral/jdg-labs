@@ -1,6 +1,6 @@
 <jboss-deployment-structure>
     <deployment>
-    	<!-- FIXME: Add dependencies to JDG Query Module  -->
+    	<!-- DONE: Add dependencies to JDG Modules  -->
         <dependencies>
             <module name="org.infinispan" slot="jdg-6.3" services="import"/>
             <module name="org.infinispan.cdi" slot="jdg-6.3" meta-inf="import"/>

@@ -141,11 +141,11 @@ public class TaskServiceTest {
 			taskservice.findAll();
 		}
 		long stopTime = System.currentTimeMillis();
-
-		log.info("#### Executeing 1000 reads took " + (stopTime - startTime)
-				+ " ms");
 		
-		Assert.assertTrue(String.format("Failed to execute %s reads within %s ms. Actual execution time was %d ms",numberOfReads,timeAllowed,(stopTime - startTime)),(stopTime - startTime) < timeAllowed);
+		String assertMsg = String.format("Failed to execute %s reads within %s ms. Actual executiong time was %d ms",numberOfReads,timeAllowed,(stopTime - startTime));
+		String logMsg = String.format("#### Executing %s reads tool %d ms",numberOfReads,(stopTime - startTime));
+		log.info(logMsg);
+		Assert.assertTrue(assertMsg,(stopTime - startTime) < timeAllowed);
 	}
 
 }

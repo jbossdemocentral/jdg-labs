@@ -87,9 +87,12 @@ function setup_eap_with_modules() {
 	unzip -q -o -d ${EXTRACT_DIR} $SRC_DIR/$EAP_SERVER
 
 	# Creating and admin user with admin-123 as password
-	echo "Adding admin user"
+	echo "Adding user 'admin' with password 'admin-123' to 'ManagementRealm'"
 	$JBOSS_HOME/bin/add-user.sh -g admin -u admin -p admin-123 -s
-
+	
+	# Creating and user- user with admin-123 as password
+	echo "Adding user 'johndoe' with password 'johndoe-123' to 'ApplicationRealm'"
+	$JBOSS_HOME/bin/add-user.sh -g users -u johndoe -p johndoe-123 -r ApplicationRealm -up application-users.properties -gp application-roles.properties -s
 
 	# Adding JBoss Data Grid Library modules to EAP
 	echo "Adding JBoss Data Grid Modules to EAP"
