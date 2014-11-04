@@ -3,7 +3,6 @@ package com.acme.todo;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;

@@ -9,269 +9,20 @@ The sales account manager for Acme Inc from the RDBMS vendor (Cleora) had a meet
 ## Use-case
 Rewrite the application to only use JDG library mode, configure a file store and configure cluster.
 
-## These are the main tasks of lab 3
+ 
 
-1. Remove JPA code from Task and TaskService
+## These are the main tasks of lab 3
+To save time we have prepared the code by removing references to JPA and implementing a flatter datamodel. 
+
+1. Remove JPA code from Task and TaskService. __Already DONE!!!__, just review the code
 2. Configure a file store (using SingleFileStore)
 3. Configure the cache for clustering
 
 ## Step-by-Step
 
-1. Open `src/main/java/org/jboss/infinispan/demo/TaskService.java` and remove all references to EntityManager. TaskService should look something like this:
-		package org.jboss.infinispan.demo;
-
-		import java.util.ArrayList;
-		import java.util.Collection;
-		import java.util.Date;
-		import java.util.List;
-		import java.util.logging.Logger;
-
-		import javax.annotation.PostConstruct;
-		import javax.ejb.Stateless;
-		import javax.inject.Inject;
-		import javax.persistence.EntityManager;
-		import javax.persistence.PersistenceContext;
-		import javax.persistence.criteria.CriteriaBuilder;
-		import javax.persistence.criteria.CriteriaQuery;
-		import javax.persistence.criteria.Root;
-
-		import org.apache.lucene.search.Query;
-		import org.hibernate.search.query.dsl.QueryBuilder;
-		import org.infinispan.Cache;
-		import org.infinispan.query.CacheQuery;
-		import org.infinispan.query.Search;
-		import org.infinispan.query.SearchManager;
-		import org.jboss.infinispan.demo.model.Task;
-
-		@Stateless
-		public class TaskService {
-
-			@Inject
-			Cache<Long,Task> cache;
+1. Review the code. Compare TaskService, UserService, User, Task in __lab4__ with __lab3__.
 	
-			Logger log = Logger.getLogger(this.getClass().getName());
-
-			/**
-			 * This methods should return all cache entries, currently contains mockup code. 
-			 * @return
-			 */
-			public Collection<Task> findAll() {
-				return cache.values();
-			}
-	
-			/**
-			 * This method filters task based on the input
-			 * @param input - string to filter on
-			 * @return
-			 * 
-			 */
-			public Collection<Task> filter(String input) {
-				SearchManager sm = Search.getSearchManager(cache);
-				QueryBuilder qb = sm.buildQueryBuilderForClass(Task.class).get();
-				Query q = qb.keyword().onField("title").matching(input).createQuery();
-				CacheQuery cq = sm.getQuery(q, Task.class);
-				List<Task> tasks = new ArrayList<Task>();
-				for (Object object : cq) {
-					tasks.add((Task) object);
-				}
-				return tasks;
-			}
-
-			/**
-			 * This method persists a new Task instance
-			 * @param task
-			 * 
-			 */
-			public void insert(Task task) {
-				if(task.getCreatedOn()==null)
-					task.setCreatedOn(new Date());
-				cache.put(task.getId(),task);
-			}
-
-
-			/**
-			 * This method persists an existing Task instance
-			 * @param task
-			 * 
-			 */
-			public void update(Task task) {
-				cache.replace(task.getId(),task);
-			}
-	
-			/**
-			 * This method deletes an Task from the persistence store
-			 * @param task
-			 * 
-			 */
-			public void delete(Task task) {
-				//Note object may be detached so we need to tell it to remove based on reference
-				cache.remove(task.getId());
-			}
-	
-	
-			/**
-			 * This method is called after construction of this SLSB.
-			 * 
-			 */
-			@PostConstruct
-			public void startup() {
-		
-			}
-	
-		}
-		
-2. Implement a new way to generate unique id when inserting new tasks. Replace:
-		
-		public void insert(Task task) {
-			if(task.getCreatedOn()==null)
-				task.setCreatedOn(new Date());
-			cache.put(task.getId(),task);
-		}
-
-	with:
-
-		public void insert(Task task) {
-			if (task.getCreatedOn() == null)
-				task.setCreatedOn(new Date());
-			if(task.getId()==null) {
-				task.setId(new Long(cache.size()+1));
-			}
-			cache.put(task.getId(), task);
-		}
-		
-3. Remove JPA references in `src/main/java/org/jboss/infinispan/demo/model/Task.java`. The new Task class should look something like this:
-
-		package org.jboss.infinispan.demo.model;
-		
-		import java.io.Serializable;
-		import java.util.Date;
-
-		import javax.persistence.Column;
-		import javax.persistence.Entity;
-		import javax.persistence.GeneratedValue;
-		import javax.persistence.GenerationType;
-		import javax.persistence.Id;
-		import javax.persistence.Temporal;
-		import javax.persistence.TemporalType;
-		import javax.persistence.Version;
-
-		import org.hibernate.search.annotations.Field;
-		import org.hibernate.search.annotations.Indexed;
-		import org.hibernate.search.annotations.Store;
-
-		/**
-		 * This class is the JPA entity of a Task
-		 * @author tqvarnst
-		 *
-		 */
-		@Indexed
-		public class Task implements Serializable {
-
-			private static final long serialVersionUID = 2315323429163437300L;
-
-			private Long id;
-	
-			private int version;
-
-			@Field(store = Store.YES)
-			private String title;
-
-			private boolean done;
-
-			private Date createdOn;
-
-			private Date completedOn;
-
-			public Long getId() {
-				return this.id;
-			}
-
-			public void setId(final Long id) {
-				this.id = id;
-			}
-
-			public int getVersion() {
-				return this.version;
-			}
-
-			public void setVersion(final int version) {
-				this.version = version;
-			}
-
-			@Override
-			public boolean equals(Object obj) {
-				if (this == obj) {
-					return true;
-				}
-				if (!(obj instanceof Task)) {
-					return false;
-				}
-				Task other = (Task) obj;
-				if (id != null) {
-					if (!id.equals(other.id)) {
-						return false;
-					}
-				}
-				return true;
-			}
-
-			@Override
-			public int hashCode() {
-				final int prime = 31;
-				int result = 1;
-				result = prime * result + ((id == null) ? 0 : id.hashCode());
-				return result;
-			}
-
-			public String getTitle() {
-				return title;
-			}
-
-			public void setTitle(String title) {
-				this.title = title;
-			}
-
-			public boolean isDone() {
-				return done;
-			}
-
-			public void setDone(boolean done) {
-				this.done = done;
-			}
-
-			public Date getCreatedOn() {
-				return createdOn;
-			}
-
-			public void setCreatedOn(Date createdOn) {
-				this.createdOn = createdOn;
-			}
-
-			public Date getCompletedOn() {
-				return completedOn;
-			}
-
-			public void setCompletedOn(Date completedOn) {
-				this.completedOn = completedOn;
-			}
-
-			@Override
-			public String toString() {
-				String result = getClass().getSimpleName() + " ";
-				if (title != null && !title.trim().isEmpty())
-					result += "title: " + title;
-				result += ", done: " + done;
-				return result;
-			}
-	
-	
-		}
-			
-4. Run the JUnit test to verify your changes so far.
-
-	![img1](images/lab4-image1.png)
-	
-5. Open `src/main/java/org/jboss/infinispan/demo/Config.java` and add the following to Configuration builder:
+1. Configure the file cache store by opening `src/main/java/com/acme/todo/Config.java` and add the following to Configuration builder:
 
 		.persistence()
 			.addSingleFileStore()
@@ -294,9 +45,11 @@ Rewrite the application to only use JDG library mode, configure a file store and
 		Configuration loc = new ConfigurationBuilder().jmxStatistics()
 			.enable() // Enable JMX statistics
 			.clustering().cacheMode(CacheMode.DIST_ASYNC) 
-			.hash().numOwners(2)
+			.hash().numOwners(1)
 		...
 
+	Normally we would configure 2 or more owners, but since we later will start two nodes have two nodes with two owners are essentially the same as running in replicated mode.
+	
 8. Configure the transport for the cluster by adding `jgroups-udp.xml` to the `GlobalConfigurationBuilder`
 
 

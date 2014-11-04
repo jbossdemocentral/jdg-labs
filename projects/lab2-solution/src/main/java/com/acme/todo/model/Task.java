@@ -14,9 +14,6 @@ import javax.persistence.TemporalType;
 import javax.persistence.Version;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
 
 @Entity
 public class Task implements Serializable {

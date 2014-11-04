@@ -41,20 +41,14 @@ To to this we need to do the following:
 ### Add developer dependencies
 
 1. Open pom.xml
-2. Select the dependencies tab
+1. Add the followwing dependency
 
-  	![img1](images/lab2-image1.png)
-  
-3. Click **Add...** button
-4. Type `infinispan-query` in the search field and select the managed version that should appear.
-
-  	![img2](images/lab2-image2.png)
-  
-5. Change **Scope** to `provided` and Click **OK**
-6. Select the newly added dependency and click **Properties...**
-7. Remove the Type by deleting boundle.
-  
-  	![img3](images/lab2-image3.png)
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-query</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
   
 ### Add runtime dependencies
 
@@ -73,29 +67,38 @@ To to this we need to do the following:
 
 1. After saving It's recommended to run the JUnit test to verify that everything deploys fine.
 
+### Save Tasks so that we can query them
+In order for us to create queries we need to flaten our object model. Since we are still using a database we do not want to destroy the complex hibernate model yet, so instead we will save the Tasks nativly using *username_id* as unique key.
+
+This has already been implemented for you but review the code in `src/main/java/com/acme/todo/TaskService.java`. Basically every time a Task is inserted/updated or deleted we do the same to a Task instance in the cache. 
+
+
 ### Update the configuration
 
-1. Open `src/main/java/org/jboss/infinispan/demo/Config.java`
+1. Open `src/main/java/com/acme/todo/Config.java`
 1. After the global configuration we need to create a `SearchMapping` object that tells JDG how to index `Task` objects 
 
 		SearchMapping mapping = new SearchMapping();
-		mapping.entity(Task.class).indexed().providedId()
-			.property("title", ElementType.METHOD).field();
-			
-1. Create a `Properties` object and store the `SearchMapping` object under the `org.hibernate.search.Environment.MODEL_MAPPING` key.
-
-		Properties properties = new Properties();
+			mapping
+				.entity(Task.class).indexed().providedId()
+					.property("title", ElementType.METHOD).field()
+					.property("owner", ElementType.METHOD).indexEmbedded().depth(1).prefix("owner_")
+				.entity(User.class)
+					.property("username", ElementType.METHOD).containedIn();
+	
+			Properties properties = new Properties();
 			properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
+			properties.put("default.directory_provider", "ram");
+			properties.put("default.exclusive_index_use", "true");
+			properties.put("default.indexmanager", "near-real-time");
+			
+1. Now we can enable the index on the Configuration by adding `.indexing().enable().withProperties(properties)` to the fluid API before `.build()`
 
-1. We also need to tell JDG (or Lucene) to store the indexes in ram memory by adding a property with key "default.directory_provider" and value "key". 
+		.indexing().enable().withProperties(properties)
 
-		properties.put("default.directory_provider", "ram");
-		
-1. Now we can enable the index on the configuration object by adding `.indexing().enable()` to the fluid API before `.build()`.
-1. Also we want to configure the index to support clustering adding `.indexLocalOnly(false)` to the fluid API before `.build()`.
-1. And finally we want to pass in the properties configuration by adding `.withProperties(properties)` to the fluid API before `.build()`. The config class should now look like this:
+1. The config class should now look like this, when you are done:
 
-		package org.jboss.infinispan.demo;
+		package com.acme.todo;
 
 		import java.lang.annotation.ElementType;
 		import java.util.Properties;
@@ -105,6 +108,10 @@ To to this we need to do the following:
 		import javax.enterprise.inject.Default;
 		import javax.enterprise.inject.Produces;
 
+		import org.apache.lucene.analysis.standard.StandardAnalyzer;
+		import org.apache.solr.analysis.LowerCaseFilterFactory;
+		import org.apache.solr.analysis.NGramFilterFactory;
+		import org.apache.solr.analysis.StandardTokenizerFactory;
 		import org.hibernate.search.cfg.SearchMapping;
 		import org.infinispan.configuration.cache.Configuration;
 		import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -113,13 +120,17 @@ To to this we need to do the following:
 		import org.infinispan.eviction.EvictionStrategy;
 		import org.infinispan.manager.DefaultCacheManager;
 		import org.infinispan.manager.EmbeddedCacheManager;
-		import org.jboss.infinispan.demo.model.Task;
+		import org.infinispan.transaction.LockingMode;
+		import org.infinispan.transaction.TransactionMode;
+
+		import com.acme.todo.model.Task;
+		import com.acme.todo.model.User;
 
 		/**
 		 * This is Class will be used to configure JDG Cache
 		 * @author tqvarnst
 		 * 
-		 * DONE: Add configuration to enable indexing of title field of the Task class
+		 * DONE: Add implementation that Produces configuration for the default cache
 		 *
 		 */
 		public class Config {
@@ -138,22 +149,28 @@ To to this we need to do the following:
 							.build();
 			
 					SearchMapping mapping = new SearchMapping();
-					mapping.entity(Task.class).indexed().providedId()
-						  .property("title", ElementType.METHOD).field();
-			 
+					mapping
+						.entity(Task.class).indexed().providedId()
+							.property("title", ElementType.METHOD).field()
+							.property("owner", ElementType.METHOD).indexEmbedded().depth(1).prefix("owner_")
+						.entity(User.class)
+							.property("username", ElementType.METHOD).containedIn();
+			
 					Properties properties = new Properties();
 					properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
 					properties.put("default.directory_provider", "ram");
-		
+					properties.put("default.exclusive_index_use", "true");
+					properties.put("default.indexmanager", "near-real-time");
+			
+			
 			
 					Configuration loc = new ConfigurationBuilder().jmxStatistics()
 							.enable() // Enable JMX statistics
 							.eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
-							.indexing()
-								.enable()
-								.indexLocalOnly(false)
-								.withProperties(properties)
+							.transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
+							.indexing().enable().withProperties(properties).indexLocalOnly(true)
 							.build();
+			
 					manager = new DefaultCacheManager(glob, loc, true);
 				}
 				return manager;
@@ -165,34 +182,81 @@ To to this we need to do the following:
 				manager = null;
 			}
 		}
+		
+		
  
 
 ### Write the implementation to Query JDG
 
-1. Open `src/main/java/org/jboss/infinispan/demo/TaskService.java`
-1. Navigate to the `public Collection<Task> filter(String input)` and delete the current DB implementation
+1. Open `src/main/java/com/acme/todo/TaskService.java`
+1. Navigate to the `filter(String)` method and delete the current implementation
+1. First we need to create a search string out of the filter value that the user supplies. We will use wildcard '*' before and after and search useing lower case which is the default tokenizer.
+	
+		String searchStr = String.format("*%s*", value.toLowerCase());
+		
 1. In order create QueryBuilder and run that query we need a `SearchMangaer` object. We can get that by calling `Search.getSearchManager(cache)`
 		
-		SearchManager sm = Search.getSearchManager(cache);
+		SearchManager sm = Search.getSearchManager(taskCache);
 		
+	You also need to import:
+		
+		import org.infinispan.query.SearchManager;
+		
+	
 1. To create a `QueryBuilder` object we can then get a `SearchFactory` from the `SearchManager` and call `buildQueryBuilder().forEntity(Task.class).get()` on it.
 		
 		QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
 		
-1. Now we can create a `Query` object from the `QueryBuilder` using the fluid api to specify which Field to match etc. (For more information on see section *[6 Querying](http://red.ht/1w5yrnC)* of *[JBoss WFK - Hiberante Search Guide](http://red.ht/1rm6bg2)*)
+	You also need to import:
+		
+		import org.hibernate.search.query.dsl.QueryBuilder; 
+		
+1. Now we can create a `Query` object from the `QueryBuilder` using the fluid api to specify which Field to match etc. (For more information on see section _[JDG Query Guide](http://red.ht/1obXvd1)_. 
 
-		Query q = qb.keyword().onField("title").matching(input).createQuery();
+		Query q = qb.bool()
+			.must(qb.keyword().wildcard().onField("title").matching(searchStr).createQuery())
+			.must(qb.keyword().onFields("owner_username").ignoreAnalyzer().matching(userService.getUsernameOfCurrentUser()).createQuery())
+			.createQuery();
+	
+	The query uses combines two different queries where both _must_ be valid for a Task to return. 
+	
+	You also need to import
+	
+		import org.infinispan.query.Search;
 
 1. We can now get a `CacheQuery` object by using the `SearchManager.getQuery(...)` method.
 		
-		CacheQuery cq = sm.getQuery(q, Task.class);	
+		CacheQuery cq = sm.getQuery(q, Task.class);
+	
+	You also need to import
+	
+		import org.infinispan.query.CacheQuery;
 		
 1. The `CacheQuery` extends `Iterable<Object>` directly, but since we are expecting a `Collection<Task>` to return we will have to call `CacheQuery.list()` to get a `List<Object>` back. This will now have to be cast to typed Collection using double Casting.
 
 		return (Collection<Task>)(List)cq.list();
 		
 	Note that since we are using a QueryBuilder specifically for Task.class we can safely do this cast.
-	
+
+1. The filter method should look something like this when you are done:
+
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public Collection<Task> filter(String value) {		
+			String searchStr = String.format("*%s*", value.toLowerCase());
+			SearchManager sm = Search.getSearchManager(taskCache);
+			QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
+			Query q = qb.bool()
+					.must(qb.keyword().wildcard().onField("title").matching(searchStr).createQuery())
+					.must(qb.keyword().onFields("owner_username").ignoreAnalyzer().matching(userService.getUsernameOfCurrentUser()).createQuery())
+					.createQuery();
+			CacheQuery cq = sm.getQuery(q, Task.class);
+			return (Collection<Task>)(List)cq.list();
+		}
 ### Test and deploy
 Now you are almost finished with Lab 2, you should run the Arquillian tests and then deploy the application.
 

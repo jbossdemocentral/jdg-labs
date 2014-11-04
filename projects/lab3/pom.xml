@@ -9,9 +9,9 @@
 	<packaging>war</packaging>
 	<properties>
 		<version.junit>4.11</version.junit>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>		
 		<version.arquillian_core>1.1.5.Final</version.arquillian_core>
 	</properties>
 	<dependencyManagement>
@@ -30,16 +30,16 @@
 				<scope>import</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.infinispan</groupId>
-				<artifactId>infinispan-bom</artifactId>
-				<version>6.1.0.Final-redhat-4</version>
+				<groupId>org.jboss.arquillian</groupId>
+				<artifactId>arquillian-bom</artifactId>
+				<version>${version.arquillian_core}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.jboss.arquillian</groupId>
-				<artifactId>arquillian-bom</artifactId>
-				<version>${version.arquillian_core}</version>
+				<groupId>org.infinispan</groupId>
+				<artifactId>infinispan-bom</artifactId>
+				<version>6.1.0.Final-redhat-4</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -77,19 +77,10 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-core</artifactId>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-cdi</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-query</artifactId>
-			<scope>provided</scope>
+			<version>1.9.9-redhat-2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.spec.javax.annotation</groupId>
@@ -112,9 +103,24 @@
 			<artifactId>jboss-as-arquillian-container-remote</artifactId>
 			<version>7.2.0.Final</version>
 		</dependency>
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-cdi</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-query</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<build>
-		<finalName>todo</finalName>
+		<finalName>mytodos</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
@@ -142,11 +148,20 @@
 					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<profiles>
 		<profile>
-			<id>arquillian-jbossas-remote-7</id>
+			<id>runtest</id>
 			<build>
 				<plugins>
 					<plugin>

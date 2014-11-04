@@ -29,27 +29,44 @@ annotation.
 ## Step-by-Step
 
 1. Open `src/main/java/org/jboss/infinispan/demo/Config.java` 
-2. Uncomment the search mapping entries like this: 
+2. Remove the search mapping so that `defaultEmbeddedCacheConfiguration()` looks like this: 
 		
-		GlobalConfiguration glob = new GlobalConfigurationBuilder()
-					.globalJmxStatistics().allowDuplicateDomains(true).enable() // This
-					// method enables the jmx statistics of the global
-					// configuration and allows for duplicate JMX domains
-					.build();
-			
-		//			SearchMapping mapping = new SearchMapping();
-		//			mapping.entity(Task.class).indexed().providedId()
-		//			      .property("title", ElementType.METHOD).field();
-			 
-					Properties properties = new Properties();
-		//			properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
-					properties.put("default.directory_provider", "ram");
-					
-3. Open `src/main/java/org/jboss/infinispan/demo/model/Task.java`
-4. Add `@org.hibernate.search.annotations.Indexed` as a class modifier
-5. Add `@org.hibernate.search.annotations.Field(store = org.hibernate.search.annotations.Store.YES)
-as the modifier to the `private String title` field.
-6. Run the JUnit test to verify that everything works.
+		@Produces
+		@ApplicationScoped
+		@Default
+		public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
+			if (manager == null) {
+				GlobalConfiguration glob = new GlobalConfigurationBuilder()
+						.globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+						// method enables the jmx statistics of the global
+						// configuration and allows for duplicate JMX domains
+						.build();
+		
+				Properties properties = new Properties();
+				properties.put("default.directory_provider", "ram");
+				properties.put("default.exclusive_index_use", "true");
+				properties.put("default.indexmanager", "near-real-time");
+		
+				Configuration loc = new ConfigurationBuilder().jmxStatistics()
+						.enable() // Enable JMX statistics
+						.eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+						.transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
+						.indexing().enable().withProperties(properties).indexLocalOnly(true)
+						.build();
+		
+				manager = new DefaultCacheManager(glob, loc, true);
+			}
+			return manager;
+		}
+		
+1. Open `src/main/java/com/acme/todo/model/Task.java`
+1. Add `@org.hibernate.search.annotations.Indexed` as a class modifier
+1. Add `@org.hibernate.search.annotations.Field(store = org.hibernate.search.annotations.Store.YES) as modifier to the `private String title` field.
+1. Add `@org.hibernate.search.annotations.IndexedEmbedded(depth=1,prefix="owner_")` as modifier to `private User owner`.
+1. Save
+1. Open `src/main/java/com/acme/todo/model/User.java` 
+1. Add `@org.hibernate.search.annotations.ContainedIn` as modifier to the `private String username` field.
+1. Run the JUnit test to verify that everything works.
 7. Deploy and test the application
 
 		$ mvn package jboss-as:deploy
