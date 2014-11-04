@@ -1,4 +1,4 @@
-package org.jboss.infinispan.demo;
+package com.acme.todo;
 
 import java.lang.annotation.ElementType;
 import java.util.Properties;
@@ -18,13 +18,15 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.transaction.LockingMode;
 import org.infinispan.transaction.TransactionMode;
-import org.jboss.infinispan.demo.model.Task;
+
+import com.acme.todo.model.Task;
+import com.acme.todo.model.User;
 
 /**
  * This is Class will be used to configure JDG Cache
  * @author tqvarnst
  * 
- * FIXME: Remove configuration as to which fields to index.
+ * DONE: Add implementation that Produces configuration for the default cache
  *
  */
 public class Config {
@@ -43,23 +45,28 @@ public class Config {
 					.build();
 			
 			SearchMapping mapping = new SearchMapping();
-			mapping.entity(Task.class).indexed().providedId()
-			      .property("title", ElementType.METHOD).field();
-			 
+			mapping
+				.entity(Task.class).indexed().providedId()
+					.property("title", ElementType.METHOD).field()
+					.property("owner", ElementType.METHOD).indexEmbedded().depth(1).prefix("owner_")
+				.entity(User.class)
+					.property("username", ElementType.METHOD).containedIn();
+			
 			Properties properties = new Properties();
 			properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
 			properties.put("default.directory_provider", "ram");
-		
+			properties.put("default.exclusive_index_use", "true");
+			properties.put("default.indexmanager", "near-real-time");
+			
+			
 			
 			Configuration loc = new ConfigurationBuilder().jmxStatistics()
 					.enable() // Enable JMX statistics
 					.eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
 					.transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
-					.indexing()
-						.enable()
-						.indexLocalOnly(false)
-						.withProperties(properties)
+					.indexing().enable().withProperties(properties).indexLocalOnly(true)
 					.build();
+			
 			manager = new DefaultCacheManager(glob, loc, true);
 		}
 		return manager;
