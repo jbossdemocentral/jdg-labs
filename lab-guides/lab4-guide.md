@@ -3,13 +3,13 @@ This explains the steps for lab 4, either follow them step-by-step or if you
 feel adventurous try to accomplish goals without the help of the step-by-step guide.
 
 ## Background 
-The sales account manager for Acme Inc from the RDBMS vendor (Cleora) had a meeting with the CIO of Acme this week. Because Acme Inc used JDG to improve performance instead of purchasing more DB licenses the sales account manager of Cleora decided to try to make up for the lost sales, by raising the price on the licenses that Acme are currently using. The discussion has been harsh and the CIO are really angry at the sales account manager from Cleora. At a similar meeting with the Red Hat Sales team with the CIO the Red Hat Solutions Architect (who the CIO really trusts for advices) suggested that Acme removes the database from the application an instead starts using JDG as the primary data store.
+The sales account manager for Acme Inc from the RDBMS vendor (Cleora) had a meeting with the CIO of Acme this week. Because Acme Inc used JDG to improve performance instead of purchasing more DB licenses the sales account manager of Cleora decided to try to make up for the lost sales, by raising the price on the licenses that Acme are currently using. The discussion has been harsh and the CIO is really angry at the sales account manager from Cleora. At a similar meeting with the Red Hat Sales team with the CIO the Red Hat Solutions Architect (who's advice the CIO really trusts) suggested that Acme removes the database from the application an instead starts using JDG as the primary data store.
 
 
 ## Use-case
 Rewrite the application to only use JDG library mode, configure a file store and configure cluster.
 
-## These are the main tasks of lab 3
+## These are the main tasks of lab 4
 
 1. Remove JPA code from Task and TaskService
 2. Configure a file store (using SingleFileStore)
@@ -22,7 +22,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 
     	$ sh init-lab.sh --lab=4
 	
-	Start the servers in separate consoles using the following commands
+	Stop and running servers from previous labs. Then start the servers in separate consoles using the following commands
 	
 	Node 1: 
 		
@@ -35,6 +35,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 ## Step-by-Step
 
 1. Open `src/main/java/org/jboss/infinispan/demo/TaskService.java` and remove all references to EntityManager. TaskService should look something like this:
+
 		package org.jboss.infinispan.demo;
 
 		import java.util.ArrayList;
@@ -163,15 +164,6 @@ Rewrite the application to only use JDG library mode, configure a file store and
 		import java.io.Serializable;
 		import java.util.Date;
 
-		import javax.persistence.Column;
-		import javax.persistence.Entity;
-		import javax.persistence.GeneratedValue;
-		import javax.persistence.GenerationType;
-		import javax.persistence.Id;
-		import javax.persistence.Temporal;
-		import javax.persistence.TemporalType;
-		import javax.persistence.Version;
-
 		import org.hibernate.search.annotations.Field;
 		import org.hibernate.search.annotations.Indexed;
 		import org.hibernate.search.annotations.Store;
@@ -284,7 +276,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 	
 		}
 		
-1. Since we are not using the database anymore we don't have the prepoulated data from `import.sql` which our test relies on. Update the `TaskServiceTest.java` to provide new test data.
+1. Since we are not using the database anymore we don't have the pre-populated data from `import.sql` which our test relies on. Update the `TaskServiceTest.java` to provide new test data.
 
 		@Test
 		@InSequence(5)
@@ -314,7 +306,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 
 	![img1](images/lab4-image1.png)
 	
-1. Open `src/main/java/org/jboss/infinispan/demo/Config.java` and add the following to Configuration builder:
+1. Open `src/main/java/org/jboss/infinispan/demo/Config.java` and add the following to Configuration builder before the build():
 
 		.persistence()
 			.addSingleFileStore()
@@ -331,7 +323,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 					.shutdownTimeout(25000)
 										
 1. Run the JUnit test to verify that your changes works. 
-1. Add Clustering using CacheMode REPL_SYNC to Configuration builder.
+1. Add Clustering using CacheMode REPL_SYNC to Configuration builder (after the enable()):
 		
 		...
 		Configuration loc = new ConfigurationBuilder().jmxStatistics()
