@@ -8,3 +8,4 @@ workspace
 .forge_settings
 .installs/*.zip
 org.jboss.infinispan.demo.model.Task
+.tern-project
