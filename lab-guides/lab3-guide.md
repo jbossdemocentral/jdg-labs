@@ -3,22 +3,14 @@ This explains the steps for lab 3, either follow them step-by-step or if you
 feel adventurous to accomplish the objectives without the help of the step-by-step section.
 
 ## Background 
-In Lab 2 we implemented querying by providing search mapping as to how to index
-objects via configuration. The search mapping for Lab2 was very simple, but what
-if your data model was much more complex with links between objects and 
-inheritance. Then the configuration will become more and more complex. Keeping 
-the search mapping configuration and data model in sync will become harder and 
-harder over time as your data models grows. 
+In lab 2 we implemented querying by providing search mapping as to how to index objects via configuration. The search mapping for lab 2 was very simple, but what if your data model was much more complex with links between objects and  inheritance. Then the configuration will become more and more complex. Keeping the search mapping configuration and data model in sync will become harder and harder over time as your data models grows. 
 
-The Best practice recommendation for situations like this is to keep the 
-mapping close to the model. So similar to JPA, Hibernate Search (which is the 
-base for JDG Querying) supports annotation as meta data that describes the 
-search mapping. 
+The best practice recommendation for situations like this is to keep the mapping close to the model. So similar to JPA, Hibernate Search (which is the base for JDG Querying) supports annotation as meta data that describes the search mapping. 
 
 This does requires that we can edit the data model. 
 
 ## Objectives
-Your task in Lab 3 is to move the meta-data/configuration of how to index the Task object from the Config object to instead provide this as annotations to the data model object.
+Your task in lab 3 is to move the meta-data/configuration of how to index the Task object from the Config object to instead provide this as annotations to the data model object.
 
 These are the main tasks of lab 3
 
@@ -33,7 +25,7 @@ annotation.
 
   1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 
-    		$ sh init-lab.sh --lab=3
+			$ sh init-lab.sh --lab=3
 
 ## Step-by-Step
 
@@ -63,12 +55,12 @@ as the modifier to the `private String title` field.
 		
 		$ mvn package jboss-as:deploy
 		
-8. Congratulations you are done with lab3.
+8. Congratulations you are done with lab 3.
 
 ## Summary
-In lab2 and lab3 we can see two different ways to enable searching objects. With properties we do not have to modify the object being indexed and can be a good solution when we for example don't have access to the source code. The other solution with Annotating the object it self is preferable if we have can modify the object. The reason is that it's easier to maintain the indexing meta-data closer to the actual object. When updating an index object developers can also update the indexing.
+In lab 2 and lab 3 we can see two different ways to enable searching objects. With properties we do not have to modify the object being indexed and can be a good solution when we for example don't have access to the source code. The other solution with Annotating the object it self is preferable if we have can modify the object. The reason is that it's easier to maintain the indexing meta-data closer to the actual object. When updating an index object developers can also update the indexing.
 
-The search function in JDG is very powerful, in many cases much more powerful then you would find in a typical RDBMS. For example fields can be indexed using different methods enables more advanced queries like sounds like. Note: Complex SQL queries may be hard to migrate to JDG queries and may require that you redesign data models etc. Another possible solution may be to use Map Reduce functions instead, but we will cover that more in another lab. 
+The search function in JDG is very powerful, in many cases much more powerful then you would find in a typical RDBMS. For example fields can be indexed using different methods enables more advanced queries like sounds like. Note: Complex SQL queries may be hard to migrate to JDG queries and may require that you redesign data models etc. Another possible solution may be to use MapReduce functions instead, but we will cover that more in another lab.
 
 
 

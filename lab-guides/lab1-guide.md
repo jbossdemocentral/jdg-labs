@@ -65,7 +65,7 @@ To assist with setting up the lab environment we have provided a shell script th
 
 	The Mock application is simple todo application that uses a database to store tasks. It uses angular.js on the client and the server side consists of REST services to list, create and update these tasks.
 	
-1. Go thourgh the code a bit to understand the application. 
+1. Go through the code a bit to understand the application. 
 
 
 ### Add dependencies to the maven project
@@ -134,7 +134,6 @@ to the class
 		
 	you also need to add the follwing import statement if you IDE doesn't fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")
 
-	
 		import javax.inject.Inject;
 		import org.infinispan.Cache;
 		import org.jboss.infinispan.demo.model.Task;
@@ -239,8 +238,7 @@ to the class
 				}
 				em.persist(task);
 				cache.put(task.getId(),task);
-			}
-		
+			}	
 			
 			public void update(Task task) {
 				em.merge(task);

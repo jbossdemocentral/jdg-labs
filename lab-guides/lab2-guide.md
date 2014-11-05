@@ -2,7 +2,7 @@
 This explains the steps for lab 2, either follow them step-by-step or if you feel adventurous try to accomplish goals without the help of the step-by-step guide.
 
 ## Background 
-In Lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement. 
+In lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement. 
 
 A competing vendor that has a similar task management solution released a new feature where users can filter their tasks. Something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. An external consultant are hired and to implement this feature, but since he wasn't familiar with JDG he implemented the filter solution using JPA query. This is however not responsive enough and we refactor the filter function to query JDG instead.
 
@@ -150,7 +150,6 @@ To to this we need to do the following:
 					Properties properties = new Properties();
 					properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
 					properties.put("default.directory_provider", "ram");
-		
 			
 					Configuration loc = new ConfigurationBuilder().jmxStatistics()
 							.enable() // Enable JMX statistics
@@ -200,11 +199,10 @@ To to this we need to do the following:
 	Note that since we are using a QueryBuilder specifically for Task.class we can safely do this cast.
 	
 1. You also need to add the following import statement if you IDE doesn't fix that
-
 	
 		import org.apache.lucene.search.Query;
 		import org.hibernate.search.query.dsl.QueryBuilder;
 		import org.infinispan.query.Search;
 
 ### Test and deploy
-Now you are almost finished with Lab 2, you should run the Arquillian tests and then deploy the application.
+Now you are almost finished with lab 2, you should run the Arquillian tests and then deploy the application.

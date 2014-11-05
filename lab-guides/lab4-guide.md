@@ -20,17 +20,17 @@ Rewrite the application to only use JDG library mode, configure a file store and
 
   1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 
-    	$ sh init-lab.sh --lab=4
-	
+			$ sh init-lab.sh --lab=4
+        
 	Stop and running servers from previous labs. Then start the servers in separate consoles using the following commands
 	
 	Node 1: 
 		
-		$ ./target/node1/jboss-eap-6.3/bin/standalone.sh
+			$ ./target/node1/jboss-eap-6.3/bin/standalone.sh
 	
 	Node 2:
 		
-		$ ./target/node2/jboss-eap-6.3/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+			$ ./target/node2/jboss-eap-6.3/bin/standalone.sh -Djboss.socket.binding.port-offset=100
 
 ## Step-by-Step
 
@@ -323,7 +323,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 					.shutdownTimeout(25000)
 										
 1. Run the JUnit test to verify that your changes works. 
-1. Add Clustering using CacheMode REPL_SYNC to Configuration builder (after the enable()):
+1. Add clustering using CacheMode REPL_SYNC to Configuration builder (after the enable()):
 		
 		...
 		Configuration loc = new ConfigurationBuilder().jmxStatistics()
@@ -333,15 +333,13 @@ Rewrite the application to only use JDG library mode, configure a file store and
 
 1. Configure the transport for the cluster by adding `jgroups-cluster-config.xml` to the `GlobalConfigurationBuilder`
 
-
 		GlobalConfiguration glob = new GlobalConfigurationBuilder()
 			.clusteredDefault()
 			.transport().addProperty("configurationFile", "jgroups-cluster-config.xml")
 			.globalJmxStatistics().allowDuplicateDomains(true).enable()
 			.build();
-			
-
-1.Update the createDeployment() method in the TaskServiceTest to look like this:
+            
+1. Update the createDeployment() method in the TaskServiceTest to look like this:
 
 	@Deployment
 	public static WebArchive createDeployment() {

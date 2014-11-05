@@ -1,9 +1,9 @@
 # JDG + EAP Lab 7 Guide
-This explains the steps for lab 6, either follow them step-by-step or if you 
+This explains the steps for lab 7, either follow them step-by-step or if you 
 feel adventurous try to accomplish goals without the help of the step-by-step guide.
 
 ## Background 
-myTODO application is a success, but we don't know much about our users. The marketing department has expressed requirements for tracking if users are using Computers orTablets, which OS they are using and which browsers are more popular.
+myTODO application is a success, but we don't know much about our users. The marketing department has expressed requirements for tracking if users are using computers or tablets, which OS they are using and which browsers are more popular.
 
 ## Use-case
 We will implement a solution to store user information. To minimize any impact to performance user information should be stored unstructured. Via Map/Reduce pattern we can structure the data and make use of it using reporting tools. The user information is captured from the User-Agent HTTP header that browser typically prodvide.

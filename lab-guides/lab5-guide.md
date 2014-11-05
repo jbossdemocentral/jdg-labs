@@ -37,16 +37,16 @@ Rewrite the application to only use JDG Client Server mode.
 	
 	EAP Server:	
 		
-		$ ./target/jboss-eap-6.3/bin/standalone.sh
+			$ ./target/jboss-eap-6.3/bin/standalone.sh
 		
 	JDG Server:
 		
-		$ ./target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+			$ ./target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
 		
 
 ## Step-by-Step
-1. Discussion pros and cons with different options for solution to the memory usage issuses with you the person to your collegues.
-1. Open project lab5 in JBoss Developer Studio
+1. Discussion pros and cons with different options for the solution to the memory usage issues with your colleagues.
+1. Open project lab 5 in JBoss Developer Studio
 1. Add HotRod client development and runtime dependencies by opening pom.xml and uncomment the following lines:
 		
 		<dependency>
@@ -124,7 +124,7 @@ Rewrite the application to only use JDG Client Server mode.
 1. Save the `TaskServer.java` file
 1. Open `TaskServiceTest.java` and uncomment the the `File[] jars = ....` and `.addAsLibraries(...)`
 1. Run the JUnit test and verify that everything works.
-1. Deploy the application using the following command from lab7 dir
+1. Deploy the application using the following command from lab5 dir
 		
 		$ mvn clean package jboss-as:deploy
 		
