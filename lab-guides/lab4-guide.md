@@ -9,7 +9,7 @@ The sales account manager for Acme Inc from the RDBMS vendor (Cleora) had a meet
 ## Use-case
 Rewrite the application to only use JDG library mode, configure a file store and configure cluster.
 
-## These are the main tasks of lab 3
+## These are the main tasks of lab 4
 
 1. Remove JPA code from Task and TaskService
 2. Configure a file store (using SingleFileStore)
