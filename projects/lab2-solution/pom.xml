@@ -9,9 +9,9 @@
 	<packaging>war</packaging>
 	<properties>
 		<version.junit>4.11</version.junit>
-		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.target>1.7</maven.compiler.target>
 		<version.arquillian_core>1.1.5.Final</version.arquillian_core>
 	</properties>
 	<dependencyManagement>
@@ -140,6 +140,15 @@
 				<version>2.12.4</version>
 				<configuration>
 					<skipTests>true</skipTests>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
 		</plugins>

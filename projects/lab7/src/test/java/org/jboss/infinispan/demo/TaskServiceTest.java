@@ -10,14 +10,14 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
-import org.infinispan.distexec.mapreduce.MapReduceTask;
 import org.infinispan.util.concurrent.NotifyingFuture;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
-import org.jboss.infinispan.demo.mapreduce.UserOSCountMapper;
 import org.jboss.infinispan.demo.mapreduce.CountReducer;
+import org.jboss.infinispan.demo.mapreduce.UserOSCountMapper;
 import org.jboss.infinispan.demo.model.Task;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -39,9 +39,8 @@ public class TaskServiceTest {
 	@Inject
 	private BIService biservice;
 
-//	@Inject
-//	@RequestCache
-//	private Cache<Long, String> requestCache;
+	@Inject
+	private AdvancedCache<Long, String> requestCache;
 
 	@Deployment
 	public static WebArchive createDeployment() {
@@ -50,13 +49,12 @@ public class TaskServiceTest {
 				.importRuntimeDependencies()
 				.resolve().withTransitivity()
 				.asFile();
-		
+
 		return ShrinkWrap
 				.create(WebArchive.class, "todo-test.war")
 				.addClass(Config.class)
 				.addClass(Task.class)
 				.addClass(TaskService.class)
-				.addClass(BIService.class)
 				.addClass(BIService.class)
 				.addClass(LoginHandler.class)
 				.addClass(UserOSCountMapper.class)
@@ -118,28 +116,27 @@ public class TaskServiceTest {
 		Assert.assertEquals(orgsize, taskservice.findAll().size());
 	}
 
-
-//	@Test
-//	@InSequence(6)
-//	public void testRequestCache() throws InterruptedException, ExecutionException {		
-//		ArrayList<NotifyingFuture<String>> futures = new ArrayList<NotifyingFuture<String>>();
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"));
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"));
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3"));
-//		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3"));
-//		for (NotifyingFuture<String> notifyingFuture : futures) {
-//			notifyingFuture.get();
-//		}
-//		Assert.assertEquals(7, requestCache.size());
-//		
-//		Map<String,Integer> userOsCount = biservice.getRequestStatiscsPerOs();
-//		
-//		Assert.assertEquals(3, userOsCount.get("Macintosh").intValue());
-//		Assert.assertEquals(2, userOsCount.get("Android").intValue());
-//		Assert.assertEquals(2, userOsCount.get("iPhone").intValue());
-//	}
-
+	@Test
+	@InSequence(6)
+	public void testRequestCache() throws InterruptedException, ExecutionException {		
+		int initialSize = requestCache.size();
+		ArrayList<NotifyingFuture<String>> futures = new ArrayList<NotifyingFuture<String>>();
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.78.2 (KHTML, like Gecko) Version/7.0.6 Safari/537.78.2"));
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"));
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"));
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3"));
+		futures.add(requestCache.putAsync(System.nanoTime(), "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3"));
+		for (NotifyingFuture<String> notifyingFuture : futures) {
+			notifyingFuture.get();
+		}
+		Assert.assertEquals(initialSize+7, requestCache.size());
+		
+		Map<String,Integer> userOsCount = biservice.getRequestStatiscsPerOs();
+		
+		Assert.assertEquals(3, userOsCount.get("Macintosh").intValue());
+		Assert.assertEquals(2, userOsCount.get("Android").intValue());
+		Assert.assertEquals(2, userOsCount.get("iPhone").intValue());
+	}
 }
