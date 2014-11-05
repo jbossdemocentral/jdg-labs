@@ -46,7 +46,7 @@ To to this we need to do the following:
 
 ### Add developer dependencies
 
-1. Open pom.xml
+1. Open the lab2 pom.xml (see below)
 2. Select the dependencies tab
 
   	![img1](images/lab2-image1.png)
@@ -58,7 +58,7 @@ To to this we need to do the following:
   
 5. Change **Scope** to `provided` and Click **OK**
 6. Select the newly added dependency and click **Properties...**
-7. Remove the Type by deleting boundle.
+7. Verify the Type value is Jar. If it's bundle instead switch it to jar or delete bundle.
   
   	![img3](images/lab2-image3.png)
   
@@ -177,7 +177,7 @@ To to this we need to do the following:
 
 1. Open `src/main/java/org/jboss/infinispan/demo/TaskService.java`
 1. Navigate to the `public Collection<Task> filter(String input)` and delete the current DB implementation
-1. In order create QueryBuilder and run that query we need a `SearchMangaer` object. We can get that by calling `Search.getSearchManager(cache)`
+1. In order create QueryBuilder and run that query we need a `SearchManager` object. We can get that by calling `Search.getSearchManager(cache)`
 		
 		SearchManager sm = Search.getSearchManager(cache);
 		
@@ -199,5 +199,12 @@ To to this we need to do the following:
 		
 	Note that since we are using a QueryBuilder specifically for Task.class we can safely do this cast.
 	
+1. You also need to add the following import statement if you IDE doesn't fix that
+
+	
+		import org.apache.lucene.search.Query;
+		import org.hibernate.search.query.dsl.QueryBuilder;
+		import org.infinispan.query.Search;
+
 ### Test and deploy
 Now you are almost finished with Lab 2, you should run the Arquillian tests and then deploy the application.
