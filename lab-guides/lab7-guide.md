@@ -8,6 +8,9 @@ myTODO application is a success, but we don't know much about our users. The mar
 ## Use-case
 We will implement a solution to store user information. To minimize any impact to performance user information should be stored unstructured. Via Map/Reduce pattern we can structure the data and make use of it using reporting tools. The user information is captured from the User-Agent HTTP header that browser typically prodvide.
 
+## Pre-requisites
+If you skipped lab6, please perform the configuration steps in steps 2-5 in lab6 to prepare the server.
+
 ## These are the main tasks of lab 7
 
 1. Create a local library mode cache together with the RemoteCache
@@ -37,12 +40,20 @@ We will implement a solution to store user information. To minimize any impact t
 		
 		@Inject private Cache<Long, String> requestCache;
 
-	Add the following line to all REST operations/methods
+	Add or uncomment the following line to/in all REST operations/methods
 	
 		requestCache.putAsync(System.nanoTime(), headers.getRequestHeader("user-agent").get(0));
 		
+1. You also need to add the following import statement if you IDE doesn't fix that
+
+		import org.infinispan.Cache;
+		
 1. Open `BIService.java` and do the following changes
 
+	Inject the request cache like this:
+		
+		@Inject private Cache<Long, String> requestCache;
+	
 	Change the implementation of `getRequestStatiscsPerOs()` method. 
 	
 		public Map<String,Integer> getRequestStatiscsPerOs() {
@@ -61,7 +72,7 @@ We will implement a solution to store user information. To minimize any impact t
 					.execute();	
 		}
 
-1. Investigate and try to understand what is mappenign in the mapping classes `UserOSCountMapper` and `UserBrowserVendorCountMapper`
+1. Investigate and try to understand what is happenig in the mapping classes `UserOSCountMapper` and `UserBrowserVendorCountMapper`
 1. Open `CountReducer.java` and add the implementation like below:
 	 	
 		@Override
@@ -74,7 +85,7 @@ We will implement a solution to store user information. To minimize any impact t
 			return sum;
 		}
 
-1. Open `TaskServiceTest.java` and uncomment Test 6 
+1. Open `TaskServiceTest.java` and uncomment Test 6 (if necessary)
 1. Run the JUnit test
 1. Deploy the application using the following command from projects/lab7 dir
 		
