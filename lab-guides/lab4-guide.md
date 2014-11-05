@@ -30,7 +30,7 @@ Rewrite the application to only use JDG library mode, configure a file store and
 	
 	Node 2:
 		
-		$ ./target/node1/jboss-eap-6.3/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+		$ ./target/node2/jboss-eap-6.3/bin/standalone.sh -Djboss.socket.binding.port-offset=100
 
 ## Step-by-Step
 
