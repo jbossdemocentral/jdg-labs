@@ -98,7 +98,6 @@
 				<version>7.5.Final</version>
 				<configuration>
 					<hostname>localhost</hostname>
-					<port>9999</port>
 					<username>admin</username>
 					<password>admin-123</password>
 				</configuration>
@@ -115,9 +114,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.2</version>
 				<configuration>
 					<skip>true</skip>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
 		</plugins>

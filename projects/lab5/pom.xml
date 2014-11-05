@@ -10,8 +10,8 @@
 	<properties>
 		<version.junit>4.11</version.junit>
 		<maven.compiler.source>1.6</maven.compiler.source>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.target>1.6</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<version.arquillian_core>1.1.5.Final</version.arquillian_core>
 	</properties>
 	<dependencyManagement>
@@ -71,19 +71,11 @@
 			<artifactId>jboss-ejb-api_3.1_spec</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<!-- FIXME: Uncomment the dependency to infinispan-commons and infinispan-client-hotrod  -->
-		<!-- 
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-commons</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-client-hotrod</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		 -->
+		<!-- FIXME: Uncomment the dependency to infinispan-commons and infinispan-client-hotrod -->
+		<!-- <dependency> <groupId>org.infinispan</groupId> <artifactId>infinispan-commons</artifactId> 
+			<scope>compile</scope> </dependency> <dependency> <groupId>org.infinispan</groupId> 
+			<artifactId>infinispan-client-hotrod</artifactId> <scope>compile</scope> 
+			</dependency> -->
 	</dependencies>
 	<build>
 		<finalName>mytodo</finalName>
@@ -118,9 +110,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.2</version>
 				<configuration>
 					<skip>true</skip>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
 		</plugins>
