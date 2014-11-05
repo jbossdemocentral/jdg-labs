@@ -132,7 +132,8 @@ to the class
 		@Inject
 		Cache<Long, Task> cache;
 		
-	you also need to add the follwing import statement if you IDE doesn't fix that
+	you also need to add the follwing import statement if you IDE doesn't fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")
+
 	
 		import javax.inject.Inject;
 		import org.infinispan.Cache;
