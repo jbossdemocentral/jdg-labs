@@ -12,7 +12,7 @@ We will implement a solution to store user information. To minimize any impact t
 
 1. Create a local library mode cache together with the RemoteCache
 1. Extend the REST layer to store the request data unstructured in a local cache
-2. Provide a BISerivce (Business Intelligence Service) class that can structure the data and return data summarized views of the data.
+2. Provide a BIService (Business Intelligence Service) class that can structure the data and return data summarized views of the data.
 3. Provide a BIEndpoint (REST Service) to enable UI to access the BIService
 
 ## Step-by-Step
