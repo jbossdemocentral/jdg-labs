@@ -1,10 +1,18 @@
 # JDG + EAP Setup Guide
 
+**Definition of Terms**
+
+| Term |  Definition                                 |  More information |
+|------|---------------------------------------------|-------------------|
+| JDG  |  JBoss Data Grid                            |  [website](http://www.redhat.com/en/technologies/jboss-middleware/data-grid)                 |
+| EAP  |  JBoss Enterprise Application Platform      |  [website](http://www.redhat.com/en/technologies/jboss-middleware/application-platform)                 |
+| JBDS |  JBoss Developer Studio                     |  [website](http://www.redhat.com/en/technologies/jboss-middleware/developer-studio)                 |
+
 Follow this guide to setup the lab environment for JDG labs
 
 **NOTE:** If you are looking at the PDF version and have problems with for example copying text, the original Markdown is available [here](https://github.com/tqvarnst/jdg-labs/blob/master/projects/lab-guides/lab-setup-guide.md).
 
-## Prerequisits
+## Prerequisites
 
 * Host operating system should be Linux or a BSD based OS like Mac OS X.
   * Alternative one of the above specified OS could be running in a virtual machine with a Desktop Manager

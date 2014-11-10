@@ -12,13 +12,13 @@ JDG has very advanced querying capabilities in library mode (client/server queri
 You are tasked to rewrite the filter implementation using queries in JDG instead of JPA queries. However the Task data model is used in the native mobile application and since it will take a while before we can update the mobile application you are not allowed to change the org.jboss.infinspan.demo.model.Task class.
 
 ## Objectives
-Your task in Lab 2 re-implement the filtering method, but using JDG Queries. 
+Your task in lab 2 re-implement the filtering method, but using JDG Queries. 
 The UI and REST methods are already implemented.
 
 Basically you should replace the DB Query with a JDG Query and you will have to 
 do this without modifying the org.jboss.infinspan.demo.model.Task class. 
 
-To to this we need to do the following:
+To do this we need to do the following:
 
 1. Setup the lab environment
 1. Add developer dependencies:
@@ -38,7 +38,7 @@ To to this we need to do the following:
 ### Setup the lab environment
   To assist with setting up the lab environment we have provided a shell script that does this. 
   
-  **Note:** _If you previously setup up lab 1 using this script there is no need to do this for lab 2__
+  **Note:** _If you previously setup up lab 1 using this script there is no need to do this for lab 2_
 
   1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 

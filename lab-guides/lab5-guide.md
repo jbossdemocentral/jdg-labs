@@ -46,7 +46,7 @@ Rewrite the application to only use JDG Client Server mode.
 
 ## Step-by-Step
 1. Discussion pros and cons with different options for the solution to the memory usage issues with your colleagues.
-1. Open project lab 5 in JBoss Developer Studio
+1. Open project lab5 in JBoss Developer Studio
 1. Add HotRod client development and runtime dependencies by opening pom.xml and uncomment the following lines:
 		
 		<dependency>
@@ -73,7 +73,7 @@ Rewrite the application to only use JDG Client Server mode.
 
 	**Note:** We are reusing the default cache in this lab, in lab 6 we will configure our own cache instead.
 
-1. You also need to add the following import statement if you IDE doesn't fix that
+1. You also need to add the following import statement if your IDE doesn't fix that
 
 		import javax.enterprise.inject.Produces;
 		

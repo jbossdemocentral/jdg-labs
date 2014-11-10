@@ -12,7 +12,7 @@ This does requires that we can edit the data model.
 ## Objectives
 Your task in lab 3 is to move the meta-data/configuration of how to index the Task object from the Config object to instead provide this as annotations to the data model object.
 
-These are the main tasks of lab 3
+## These are the main tasks of lab 3
 
 1. Remove the search mapping from the `org.jboss.infinispan.demo.Config`.
 2. Update the `org.jboss.infinispan.demo.model.Task` model with Search mapping 
@@ -21,7 +21,7 @@ annotation.
 ### Setup the lab environment
   To assist with setting up the lab environment we have provided a shell script that does this. 
   
-  **Note:** _If you previously setup up lab 1 or 2 using this script there is no need to do this for lab 3_
+  **Note:** _If you previously setup up lab 1 or lab 2 using this script there is no need to do this for lab 3_
 
   1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 
@@ -60,7 +60,7 @@ as the modifier to the `private String title` field.
 ## Summary
 In lab 2 and lab 3 we can see two different ways to enable searching objects. With properties we do not have to modify the object being indexed and can be a good solution when we for example don't have access to the source code. The other solution with Annotating the object it self is preferable if we have can modify the object. The reason is that it's easier to maintain the indexing meta-data closer to the actual object. When updating an index object developers can also update the indexing.
 
-The search function in JDG is very powerful, in many cases much more powerful then you would find in a typical RDBMS. For example fields can be indexed using different methods enables more advanced queries like sounds like. Note: Complex SQL queries may be hard to migrate to JDG queries and may require that you redesign data models etc. Another possible solution may be to use MapReduce functions instead, but we will cover that more in another lab.
+The search function in JDG is very powerful, in many cases much more powerful then you would find in a typical RDBMS. For example fields can be indexed using different methods enables more advanced queries like sounds like. Note: Complex SQL queries may be hard to migrate to JDG queries and may require that you redesign data models etc. Another possible solution may be to use MapReduce functions instead, but we will cover that more in lab 7.
 
 
 

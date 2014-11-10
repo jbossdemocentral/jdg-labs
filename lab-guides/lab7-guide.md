@@ -6,18 +6,18 @@ feel adventurous try to accomplish goals without the help of the step-by-step gu
 myTODO application is a success, but we don't know much about our users. The marketing department has expressed requirements for tracking if users are using computers or tablets, which OS they are using and which browsers are more popular.
 
 ## Use-case
-We will implement a solution to store user information. To minimize any impact to performance user information should be stored unstructured. Via Map/Reduce pattern we can structure the data and make use of it using reporting tools. The user information is captured from the User-Agent HTTP header that browser typically prodvide.
+We will implement a solution to store user information. To minimize any impact to performance user information should be stored unstructured. Via Map/Reduce pattern we can structure the data and make use of it using reporting tools. The user information is captured from the User-Agent HTTP header that browser typically provide.
 
 ## These are the main tasks of lab 7
 
 1. Create a local library mode cache together with the RemoteCache
 1. Extend the REST layer to store the request data unstructured in a local cache
-2. Provide a BiSerivce (Business Intelligence Service) class that can structure the data and return data summarized views of the data.
-3. Provide a BiEndpoint (REST Service) to enable UI to access the BiService
+2. Provide a BISerivce (Business Intelligence Service) class that can structure the data and return data summarized views of the data.
+3. Provide a BIEndpoint (REST Service) to enable UI to access the BIService
 
 ## Step-by-Step
 
-1. Open lab7 project in JBoss Developer Studion
+1. Open lab7 project in JBoss Developer Studio
 1. Open `Config.java` and fix the getLocalCacheManager which should look like this:
 	
 		private EmbeddedCacheManager getLocalCacheManager() {
@@ -61,7 +61,7 @@ We will implement a solution to store user information. To minimize any impact t
 					.execute();	
 		}
 
-1. Investigate and try to understand what is mappenign in the mapping classes `UserOSCountMapper` and `UserBrowserVendorCountMapper`
+1. Investigate and try to understand what is happening in the mapping classes `UserOSCountMapper` and `UserBrowserVendorCountMapper`
 1. Open `CountReducer.java` and add the implementation like below:
 	 	
 		@Override
