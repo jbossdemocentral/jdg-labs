@@ -1,0 +1,30 @@
+<h4>Manage Users</h4>
+
+<div>
+	<input type="text" ng-change="searchUserByUsername()" placeholder="Search by username or email..." ng-model="username.value" class="form-control" style="width: 350px">
+</div>
+<br/>
+<div>
+<table class="table table-hover">
+    <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Task count</th>
+    </tr>
+    <tr class="success-{{task.done}}" ng-repeat="user in users track by $index">
+        <td>
+            {{user.username}}
+        </td>
+        <td>
+            {{user.email}}
+        </td>
+        <td>
+            {{user.tasks.length}}
+        </td>
+    </tr>
+</table>
+</div>
+
+
+
+

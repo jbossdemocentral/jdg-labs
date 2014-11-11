@@ -30,18 +30,10 @@ public class TaskServiceTest {
 
 	@Inject
 	private TaskService taskservice;
-	
-	
+		
 	@PersistenceContext
     EntityManager em;
-	
-//	@Inject
-//	Cache<String, User> cache;
-	
-	@Inject
-	TaskService taskService;
-	
-	
+
 	@Deployment
 	public static WebArchive createDeployment() {
 
@@ -120,54 +112,10 @@ public class TaskServiceTest {
 		taskservice.delete(task.getId());
 		Assert.assertEquals(orgsize, taskservice.findAll().size());
 	}
-	
+		
 	@Test
+//	@Ignore
 	@InSequence(5)
-	public void testFilterTask() {
-		Task t1 = new Task();
-		t1.setTitle("Complete the labs in JDG + EAP");
-		t1.setCreatedOn(new Date());
-		taskservice.insert(t1);
-		
-		Task t2 = new Task();
-		t2.setTitle("Sell more JDG");
-		t2.setCreatedOn(new Date());
-		taskservice.insert(t2);
-		
-		Task t3 = new Task();
-		t3.setTitle("Send feedback on the training to tqvarnst@redhat.com");
-		t3.setCreatedOn(new Date());
-		taskservice.insert(t3);
-		
-		
-		Task t4 = new Task();
-		t4.setTitle("Send feedback to sme-jdg to the developers how great JDG is");
-		t4.setCreatedOn(new Date());
-		taskservice.insert(t4);
-		
-		Task t5 = new Task();
-		t5.setTitle("Sell more EAP");
-		t5.setCreatedOn(new Date());
-		taskservice.insert(t5);
-		
-		
-		Collection<Task> tasks = taskservice.filter("EAP");
-		Assert.assertEquals(2, tasks.size());
-		tasks = taskservice.filter("SELL");
-		Assert.assertEquals(2, tasks.size());
-		tasks = taskservice.filter("FeedBack");
-		Assert.assertEquals(2, tasks.size());
-		
-		taskservice.delete(t1.getId());
-		taskservice.delete(t2.getId());
-		taskservice.delete(t3.getId());
-		taskservice.delete(t4.getId());
-		taskservice.delete(t5.getId());
-	}
-	
-	@Test
-	@Ignore
-	@InSequence(6)
 	public void testReadPerformance() {
 		
 		int numberOfTasks = 100;
