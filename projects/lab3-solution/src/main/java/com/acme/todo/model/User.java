@@ -12,26 +12,36 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Version;
 
-import org.hibernate.search.annotations.ContainedIn;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
 
 @Entity
+@Indexed
 public class User implements Serializable {
 
 	private static final long serialVersionUID = -5624201782761601738L;
 
 	
-	@ContainedIn
+	@Field(store=Store.YES)
 	@Id
 	@Column(name = "username", updatable = false, nullable = false)
 	private String username = null;
+	
+	@Field(store=Store.YES)
+	@Column
+	private String email = null;
 	
 	@Version
 	@Column(name = "version")
 	private int version = 0;
 	
+//	@IndexedEmbedded(prefix="tasks.task",depth=1)
 	@OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL,mappedBy="owner")
 	private List<Task> tasks = new ArrayList<Task>();
 
+	
+	
 	public User() {
 	}
 
@@ -42,8 +52,15 @@ public class User implements Serializable {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-
 	
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	public int getVersion() {
 		return this.version;
 	}

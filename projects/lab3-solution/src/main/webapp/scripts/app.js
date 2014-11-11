@@ -15,10 +15,15 @@ app.config(function ($routeProvider) {
     }).when('/edit', {
         templateUrl: 'views/create.html',
         controller: 'EditCtrl'
+    }).when('/admin', {
+        templateUrl: 'views/admin.html',
+        controller: 'AdminCtrl'
     }).otherwise({
         redirectTo: '/'
     });
 });
+
+//AdminCtrl
  
 app.controller('ListCtrl', function ($scope, $http, $location) {
 	var baseUrl=getBaseUrl($location);
@@ -103,6 +108,27 @@ app.controller('EditCtrl', function ($scope, $http, $location) {
         });
     };
 });
+
+app.controller('AdminCtrl', function ($scope, $http, $location) {
+	var baseUrl=getBaseUrl($location);
+    $scope.searchUserByUsername = function() {
+    	var searchStr = $scope.username.value;
+    	if(searchStr.length>=3) {
+    		console.log('[Info] - executing searchUserByUsername with value' + searchStr);
+    		$http.get(baseUrl + '/rest/admin/user/search/' + searchStr).success(function (data) {
+    			$scope.users = data;
+    	    }).error(function (data, status) {
+    	        console.log('Error ' + data);
+    	    }); 
+    	} else {
+    		$scope.users=null;
+    	}
+	};
+	
+	// /admin/user/search
+});
+
+
 
 app.directive('autoFocus', function($timeout) {
     return {

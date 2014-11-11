@@ -31,6 +31,7 @@ public class TaskEndpoint {
 	@Inject
 	TaskService taskService;
 
+	
 	@POST
 	@Consumes("application/json")
 	public Response create(Task task) {
@@ -44,14 +45,6 @@ public class TaskEndpoint {
 	@Produces("application/json")
 	public Collection<Task> listAll() {
 		return taskService.findAll();
-	}
-
-	@GET
-	@Produces("application/json")
-	@Path("/filter/{value}")
-	public Collection<Task> filter(@PathParam("value") String value) {
-
-		return taskService.filter(value);
 	}
 
 	@PUT

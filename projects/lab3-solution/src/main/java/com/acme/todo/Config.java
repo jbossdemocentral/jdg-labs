@@ -1,6 +1,5 @@
 package com.acme.todo;
 
-import java.lang.annotation.ElementType;
 import java.util.Properties;
 
 import javax.annotation.PreDestroy;
@@ -8,7 +7,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 
-import org.hibernate.search.cfg.SearchMapping;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.global.GlobalConfiguration;
@@ -18,9 +16,6 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.transaction.LockingMode;
 import org.infinispan.transaction.TransactionMode;
-
-import com.acme.todo.model.Task;
-import com.acme.todo.model.User;
 
 /**
  * This is Class will be used to configure JDG Cache

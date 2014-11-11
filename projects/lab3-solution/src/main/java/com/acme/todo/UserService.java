@@ -1,5 +1,8 @@
 package com.acme.todo;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -9,7 +12,12 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.apache.lucene.search.Query;
+import org.hibernate.search.query.dsl.QueryBuilder;
 import org.infinispan.Cache;
+import org.infinispan.query.CacheQuery;
+import org.infinispan.query.Search;
+import org.infinispan.query.SearchManager;
 
 import com.acme.todo.model.Task;
 import com.acme.todo.model.User;
@@ -29,8 +37,6 @@ public class UserService {
 	 * DONE: Inject a cache object
 	 */
 	@Inject Cache<String, User> cache;
-	
-	@Inject Cache<String, Task> taskCache;
 
 	/**
 	 * This method returns the current user according to the caller principals.
@@ -49,20 +55,27 @@ public class UserService {
 				user = createUser(username);
 			}
 			cache.put(username,user);
-			populateSearchTasks(user);
 		}
 		return user;
 	}
 	
-	public String getUsernameOfCurrentUser() {
-		return sessionContext.getCallerPrincipal().getName();
-	}
-	
-	public void populateSearchTasks(User user) {
-		for(Task task : user.getTasks()) {
-			taskCache.put(String.format("%s#%d", task.getOwner(), task.getId()), task);
-		}
-		
+	/**
+	 * This method returns a List of user where username or email matches the search string
+	 * 
+	 * @param searchStr
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public List<User> searchUser(String searchStr) {
+		searchStr = String.format("*%s*", searchStr.toLowerCase());
+		SearchManager sm = Search.getSearchManager(cache);
+		QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(User.class).get();
+		Query q = qb.bool()
+				.should(qb.keyword().wildcard().onField("username").matching(searchStr).createQuery())
+				.should(qb.keyword().wildcard().onField("email").matching(searchStr).createQuery())
+				.createQuery();
+		CacheQuery cq = sm.getQuery(q, User.class);
+		return (List<User>)(List)cq.list();
 	}
 
 	/**

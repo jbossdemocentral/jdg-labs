@@ -39,8 +39,6 @@ public class TaskService {
 	@Inject
 	UserService userService;
 	
-	@Inject Cache<String, Task> taskCache;
-
 	Logger log = Logger.getLogger(this.getClass().getName());
 
 	/**
@@ -70,23 +68,6 @@ public class TaskService {
 		return tasks;
 	}
 	
-	/**
-	 * 
-	 * @param value
-	 * @return
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Collection<Task> filter(String value) {		
-		String searchStr = String.format("*%s*", value.toLowerCase());
-		SearchManager sm = Search.getSearchManager(taskCache);
-		QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
-		Query q = qb.bool()
-				.must(qb.keyword().wildcard().onField("title").matching(searchStr).createQuery())
-				.must(qb.keyword().onFields("owner_username").ignoreAnalyzer().matching(userService.getUsernameOfCurrentUser()).createQuery())
-				.createQuery();
-		CacheQuery cq = sm.getQuery(q, Task.class);
-		return (Collection<Task>)(List)cq.list();
-	}
 
 	/**
 	 * This method persists a new Task instance
@@ -102,7 +83,6 @@ public class TaskService {
 		task.setOwner(userService.getCurrentUser());
 		em.persist(task);
 		userService.getCurrentUser().getTasks().add(task);
-		taskCache.put(String.format("%s#%d", userService.getUsernameOfCurrentUser(), task.getId()), task);
 	}
 
 
@@ -125,7 +105,6 @@ public class TaskService {
 		int index = cachedTasks.indexOf(task);
 		cachedTasks.remove(index);
 		cachedTasks.add(index, task);
-		taskCache.put(String.format("%s#%d", userService.getUsernameOfCurrentUser(), task.getId()), task);
 	}
 	
 
@@ -144,7 +123,6 @@ public class TaskService {
 	        .executeUpdate();
 		Task fakeTask = new Task();
 		fakeTask.setId(taskId);
-		taskCache.remove(String.format("%s#%d", userService.getUsernameOfCurrentUser(), taskId));
 		userService.getCurrentUser().getTasks().remove(fakeTask);
 		
 	}

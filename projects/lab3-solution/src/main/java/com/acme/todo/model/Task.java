@@ -14,13 +14,13 @@ import javax.persistence.TemporalType;
 import javax.persistence.Version;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
 
 @Entity
-@Indexed
 public class Task implements Serializable {
 
 	private static final long serialVersionUID = 2315323429163437300L;
@@ -47,7 +47,7 @@ public class Task implements Serializable {
 	@Temporal(TemporalType.DATE)
 	private Date completedOn;
 
-	@IndexedEmbedded(depth=1,prefix="owner_")
+	@ContainedIn()
 	@ManyToOne
 	@JsonIgnore
 	private User owner;
