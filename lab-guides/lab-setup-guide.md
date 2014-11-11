@@ -1,17 +1,25 @@
-# JDG and EAP Lab Setup Guide
+# JDG + EAP Setup Guide
+
+**Definition of Terms**
+
+| Term |  Definition                                 |  More information |
+|------|---------------------------------------------|-------------------|
+| JDG  |  JBoss Data Grid                            |  [website](http://www.redhat.com/en/technologies/jboss-middleware/data-grid)                 |
+| EAP  |  JBoss Enterprise Application Platform      |  [website](http://www.redhat.com/en/technologies/jboss-middleware/application-platform)                 |
+| JBDS |  JBoss Developer Studio                     |  [website](http://www.redhat.com/en/technologies/jboss-middleware/developer-studio)                 |
 
 Follow this guide to setup the lab environment for JDG labs
 
 **NOTE:** If you are looking at the PDF version and have problems with for example copying text, the original Markdown is available [here](https://github.com/tqvarnst/jdg-labs/blob/master/projects/lab-guides/lab-setup-guide.md).
 
-## Prerequisits
+## Prerequisites
 
-* Host operating system should be Linux or a BSD based os like Mac OS X.
+* Host operating system should be Linux or a BSD based OS like Mac OS X.
   * Alternative one of the above specified OS could be running in a virtual machine with a Desktop Manager
 * The following software should be installed prior to the lab
-  * OpenJDK or Oracle JDG using 1.6 or 1.7
+  * OpenJDK or Oracle JDK using 1.6 or 1.7
   * Apache Maven (installed and on the path)
-  * JBoss Developer Studion 7.X
+  * JBoss Developer Studio 7.X
 * Download [jdg-labs.zip](https://mojo.redhat.com/docs/DOC-987628) or clone this project 
 * Download the following JBoss software as zip files (used later in the labs)
   * `jboss-datagrid-6.3.0-eap-modules-library.zip`
@@ -21,16 +29,15 @@ Follow this guide to setup the lab environment for JDG labs
   * `jboss-eap-6.3.0.zip`
   
 ## Setup Development environment
-1. Unzip jdg-labs.zip in a suiteable directory (for example $HOME)
+1. Unzip jdg-labs.zip in a suitable directory (for example $HOME)
 
   `$ unzip jdg-labs.zip -d $HOME`
-
 
 1. Change directory into the lab root dir
 
   `$ cd ~/jdg-labs/`
 
-1. Copy (or move) the downloded jboss software into installs directory
+1. Copy (or move) the downloded JBoss software into installs directory
 1. Setup the development environment with the provided script
 
   `$ sh init-dev.sh`
@@ -70,5 +77,5 @@ Follow this guide to setup the lab environment for JDG labs
  	![Select Maven profile](images/lab-guide-image-7.png)
 
 1. You should now have a workbench with warnings, but without problems.
-1. You are now ready to start with lab1
+1. You are now ready to start with lab 1
 

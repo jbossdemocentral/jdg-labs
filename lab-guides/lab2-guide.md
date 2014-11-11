@@ -2,7 +2,7 @@
 This explains the steps for lab 2, either follow them step-by-step or if you feel adventurous try to accomplish goals without the help of the step-by-step guide.
 
 ## Background 
-In Lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement. 
+In lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement. 
 
 A competing vendor that has a similar task management solution released a new feature where users can filter their tasks. Something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. An external consultant are hired and to implement this feature, but since he wasn't familiar with JDG he implemented the filter solution using JPA query. This is however not responsive enough and we refactor the filter function to query JDG instead.
 
@@ -12,13 +12,13 @@ JDG has very advanced querying capabilities in library mode (client/server queri
 You are tasked to rewrite the filter implementation using queries in JDG instead of JPA queries. However the Task data model is used in the native mobile application and since it will take a while before we can update the mobile application you are not allowed to change the org.jboss.infinspan.demo.model.Task class.
 
 ## Objectives
-Your task in Lab 2 re-implement the filtering method, but using JDG Queries. 
+Your task in lab 2 re-implement the filtering method, but using JDG Queries. 
 The UI and REST methods are already implemented.
 
 Basically you should replace the DB Query with a JDG Query and you will have to 
 do this without modifying the org.jboss.infinspan.demo.model.Task class. 
 
-To to this we need to do the following:
+To do this we need to do the following:
 
 1. Setup the lab environment
 1. Add developer dependencies:
@@ -38,7 +38,7 @@ To to this we need to do the following:
 ### Setup the lab environment
   To assist with setting up the lab environment we have provided a shell script that does this. 
   
-  **Note:** _If you previously setup up lab 1 using this script there is no need to do this for lab 2__
+  **Note:** _If you previously setup up lab 1 using this script there is no need to do this for lab 2_
 
   1. Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this
 
@@ -46,7 +46,7 @@ To to this we need to do the following:
 
 ### Add developer dependencies
 
-1. Open pom.xml
+1. Open the lab2 pom.xml (see below)
 2. Select the dependencies tab
 
   	![img1](images/lab2-image1.png)
@@ -58,7 +58,7 @@ To to this we need to do the following:
   
 5. Change **Scope** to `provided` and Click **OK**
 6. Select the newly added dependency and click **Properties...**
-7. Remove the Type by deleting boundle.
+7. Verify the Type value is Jar. If it's bundle instead switch it to jar or delete bundle.
   
   	![img3](images/lab2-image3.png)
   
@@ -150,7 +150,6 @@ To to this we need to do the following:
 					Properties properties = new Properties();
 					properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
 					properties.put("default.directory_provider", "ram");
-		
 			
 					Configuration loc = new ConfigurationBuilder().jmxStatistics()
 							.enable() // Enable JMX statistics
@@ -177,7 +176,7 @@ To to this we need to do the following:
 
 1. Open `src/main/java/org/jboss/infinispan/demo/TaskService.java`
 1. Navigate to the `public Collection<Task> filter(String input)` and delete the current DB implementation
-1. In order create QueryBuilder and run that query we need a `SearchMangaer` object. We can get that by calling `Search.getSearchManager(cache)`
+1. In order create QueryBuilder and run that query we need a `SearchManager` object. We can get that by calling `Search.getSearchManager(cache)`
 		
 		SearchManager sm = Search.getSearchManager(cache);
 		
@@ -199,5 +198,11 @@ To to this we need to do the following:
 		
 	Note that since we are using a QueryBuilder specifically for Task.class we can safely do this cast.
 	
+1. You also need to add the following import statement if you IDE doesn't fix that
+	
+		import org.apache.lucene.search.Query;
+		import org.hibernate.search.query.dsl.QueryBuilder;
+		import org.infinispan.query.Search;
+
 ### Test and deploy
-Now you are almost finished with Lab 2, you should run the Arquillian tests and then deploy the application.
+Now you are almost finished with lab 2, you should run the Arquillian tests and then deploy the application.

@@ -8,7 +8,7 @@ When the security department review the new solution with client server mode, th
 ## Use-case
 Increase the security by addning authentication
 
-## These are the main steps of lab 5
+## These are the main steps of lab 6
 
 1. Setup security for the JDG lab
 2. Implement a simple call back login handler, used by the HR client.
