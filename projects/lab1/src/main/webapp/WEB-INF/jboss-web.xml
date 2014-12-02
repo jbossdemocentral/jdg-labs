@@ -14,4 +14,5 @@
 <jboss-web>
    <security-domain>java:/jaas/other</security-domain>
    <disable-audit>true</disable-audit>
+   <context-root>mytodos</context-root>
 </jboss-web>
