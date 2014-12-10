@@ -55,7 +55,7 @@ cp init-lab.sh ${INSTALL_DIR}/
 cp example-settings.xml ${INSTALL_DIR}/
 cp installs/rh-internal-download.sh ${INSTALL_DIR}/installs
 
-curl -s -o ${INSTALL_DIR}/lab-guides/lab-setup-guide.pdf https://gitprint.com/rhnordics/jdg-labs/blob/master/lab-guides/lab-setup-guide.md?download
+curl -s -o ${INSTALL_DIR}/lab-guides/lab-setup-guide.pdf https://gitprint.com/jbossdemocentral/jdg-labs/blob/master/lab-guides/lab-setup-guide.md?download
 
 LABS=(lab1 lab2 lab3 lab4 lab5 lab6 lab7)
 
@@ -77,7 +77,7 @@ do
 	 
 	# Download the PDF version of the lab-guide
 	echo "Downloading ${lab}-guide.pdf"
-	curl -s -o ${INSTALL_DIR}/lab-guides/${lab}-guide.pdf https://gitprint.com/rhnordics/jdg-labs/blob/master/lab-guides/${lab}-guide.md?download
+	curl -s -o ${INSTALL_DIR}/lab-guides/${lab}-guide.pdf https://gitprint.com/jbossdemocentral/jdg-labs/blob/master/lab-guides/${lab}-guide.md?download
 done
 
 cd ..
