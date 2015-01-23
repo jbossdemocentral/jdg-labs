@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+  <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg-and-eap-lab-setup-guide" class="anchor" href="#jdg-and-eap-lab-setup-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG and EAP Lab Setup Guide</h1>
+
+<p>Follow this guide to setup the lab environment for JDG labs</p>
+
+<p><strong>NOTE:</strong> If you are looking at the PDF version and have problems with for example copying text, the original Markdown is available <a href="https://github.com/tqvarnst/jdg-labs/tree/master/lab-guides">here</a>.</p>
+
+<h2>
+<a id="user-content-prerequisites" class="anchor" href="#prerequisites" aria-hidden="true"><span class="octicon octicon-link"></span></a>Prerequisites</h2>
+
+<ul class="task-list">
+<li>Host operating system should be Linux or a BSD based os like Mac OS X.
+
+<ul class="task-list">
+<li>Alternative one of the above specified OS could be running in a virtual machine with a Desktop Manager</li>
+</ul>
+</li>
+<li>The following software should be installed prior to the lab
+
+<ul class="task-list">
+<li>OpenJDK or Oracle JDG using 1.6 or 1.7</li>
+<li>Apache Maven (installed and on the path)</li>
+<li>JBoss Developer Studion 7.X</li>
+</ul>
+</li>
+<li>Download <a href="https://mojo.redhat.com/docs/DOC-987628">jdg-labs.zip</a> or clone this project </li>
+<li>Download the following JBoss software as zip files (used later in the labs)
+
+<ul class="task-list">
+<li><code>jboss-datagrid-6.3.0-eap-modules-library.zip</code></li>
+<li><code>jboss-datagrid-6.3.0-maven-repository.zip</code></li>
+<li><code>jboss-datagrid-6.3.0-server.zip</code></li>
+<li><code>jboss-eap-6.3.0-maven-repository.zip</code></li>
+<li><code>jboss-eap-6.3.0.zip</code></li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="user-content-setup-development-environment" class="anchor" href="#setup-development-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup Development environment</h2>
+
+<ol class="task-list">
+<li>
+<p>Unzip jdg-labs.zip in a suiteable directory (for example $HOME)</p>
+
+<p><code>$ unzip jdg-labs.zip -d $HOME</code></p>
+</li>
+<li>
+<p>Change directory into the lab root dir</p>
+
+<p><code>$ cd ~/jdg-labs/</code></p>
+</li>
+<li><p>Copy (or move) the downloded jboss software into installs directory</p></li>
+<li>
+<p>Setup the development environment with the provided script</p>
+
+<p><code>$ sh init-dev.sh</code></p>
+</li>
+<li>
+<p>Copy generated settings.xml to $HOME/.m2/ (don't forgett to backup any existins settings.xml)</p>
+
+<p><code>$ cp target/settings.xml ~/.m2/</code></p>
+</li>
+<li><p>Start JBoss Developer Studio</p></li>
+<li>
+<p>Turn off XML validation</p>
+
+<p>Preferences -&gt; Validation</p>
+<p><a href="./images/lab-guide-image-1.png" target="_blank"><img src="./images/lab-guide-image-1.png" alt="Turn off XML validation" width="700"></a></p>
+</li>
+<li>
+<p>Import the projects. Right click on the project area select Import -&gt; Import ...</p>
+
+<p><a href="./images/lab-guide-image-2.png" target="_blank"><img src="./images/lab-guide-image-2.png" alt="Select import" width="450"></a></p>
+
+<p>Select Existing Maven Project and click Next</p>
+
+<p><a href="./images/lab-guide-image-3.png" target="_blank"><img src="./images/lab-guide-image-3.png" alt="Select import" width="500"></a></p>
+
+<p>Browse to the project directory (~/jdg-labs/project) and select all lab projects</p>
+
+<p><a href="./images/lab-guide-image-4.png" target="_blank"><img src="./images/lab-guide-image-4.png" alt="Select import" width="600"></a></p>
+</li>
+<li>
+<p>At this point the workbench should have some compilation errors that looks something like this: </p>
+
+<p><a href="./images/lab-guide-image-5.png" target="_blank"><img src="./images/lab-guide-image-5.png" alt="Error" width="300"></a></p>
+</li>
+<li>
+<p>To fix this you need to enable a Maven profile for Arquillian by right clicking on each project and select Maven -&gt; Select Maven Profile...</p>
+
+<p><a href="./images/lab-guide-image-6.png" target="_blank"><img src="./images/lab-guide-image-6.png" alt="Select Maven profile" width="500"></a></p>
+</li>
+<li>
+<p>And in the dialog check the following maven profiles as illustrated by the picture below.</p>
+
+<p><a href="./images/lab-guide-image-7.png" target="_blank"><img src="./images/lab-guide-image-7.png" alt="Select Maven profile" width="700"></a></p>
+</li>
+<li><p>You should now have a workbench with warnings, but without problems.</p></li>
+<li>You are now ready to start with lab1</li>
+</ol>
+</article>
+  </div>
+  </div>
+</div>
+  </body>
+</html>
+

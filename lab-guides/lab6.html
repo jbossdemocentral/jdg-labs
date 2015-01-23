@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+  <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg--eap-lab-6-guide" class="anchor" href="#jdg--eap-lab-6-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG + EAP Lab 6 Guide</h1>
+
+<p>This explains the steps for lab 6, either follow them step-by-step or if you 
+feel adventurous try to accomplish goals without the help of the step-by-step guide.</p>
+
+<h2>
+<a id="user-content-background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>When the security department review the new solution with Client-Server mode, they expressed worries about the fact that clients are not authenticated. To go live with Client-Server mode we need to implement authentification using simple username password. </p>
+
+<h2>
+<a id="user-content-use-case" class="anchor" href="#use-case" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use-case</h2>
+
+<p>Increase the security by adding authentication</p>
+
+<h2>
+<a id="user-content-these-are-the-main-steps-of-lab-5" class="anchor" href="#these-are-the-main-steps-of-lab-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>These are the main steps of lab 6</h2>
+
+<ol class="task-list">
+<li>Setup security for the application</li>
+<li>Implement a simple call back login handler</li>
+</ol>
+
+<h3>
+<a id="user-content-setup-the-lab-environment" class="anchor" href="#setup-the-lab-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup the lab environment</h3>
+
+<p>To assist with setting up the lab environment we have provided a shell script that does this. </p>
+
+<p><strong>Note:</strong> <em>If you previously setup up lab 5 using this script there is no need to do this for lab 6</em></p>
+
+<ol class="task-list">
+<li>
+<p>Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this</p>
+
+<pre><code>$ sh init-lab.sh --lab=6
+</code></pre>
+
+<p><strong>Note:</strong> <em>If the EAP and JDG servers are running, stop them</em></p>
+</li>
+</ol>
+
+<h2>
+<a id="user-content-step-by-step" class="anchor" href="#step-by-step" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step-by-Step</h2>
+
+<ol class="task-list">
+<li>Open <code>./target/jboss-datagrid-6.3.0-server/standalone/configuration/standalone.xml</code> using vi or text editor of choice</li>
+<li>
+<p>Add authentification code (in <strong>bold</strong>) to the hotrod endpoint in the <code>urn:infinispan:server:endpoint:</code> subsystem like this:</p>
+
+<pre><code>&lt;subsystem xmlns="urn:infinispan:server:endpoint:6.1"&gt;
+    &lt;hotrod-connector socket-binding="hotrod" cache-container="local"&gt;
+        &lt;topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/&gt;
+        <strong>&lt;authentication security-realm="ApplicationRealm"&gt;
+            &lt;sasl server-name="tasks" mechanisms="DIGEST-MD5" qop="auth"&gt;
+                &lt;policy&gt;
+                    &lt;no-anonymous value="true"/&gt;
+                &lt;/policy&gt;
+                &lt;property name="com.sun.security.sasl.digest.utf8"&gt;true&lt;/property&gt;
+            &lt;/sasl&gt;
+        &lt;/authentication&gt;</strong>
+    &lt;/hotrod-connector&gt;
+    &lt;memcached-connector socket-binding="memcached" cache-container="local"/&gt;
+    &lt;rest-connector virtual-server="default-host" cache-container="local" security-domain="other" auth-method="BASIC"/&gt;
+&lt;/subsystem&gt;
+</code></pre>
+</li>
+<li>
+<p>Add security code (in <strong>bold</strong>) to the <code>urn:infinispan:server:core:</code> subsystem, like this: </p>
+
+<pre><code>&lt;subsystem xmlns="urn:infinispan:server:core:6.1" default-cache-container="local"&gt;
+    &lt;cache-container name="local" default-cache="default" statistics="true"&gt;
+        <strong>&lt;security&gt;
+          &lt;authorization&gt;
+              &lt;identity-role-mapper/&gt;
+              &lt;role name="taskusers" permissions="READ WRITE BULK_READ"/&gt;
+          &lt;/authorization&gt;
+        &lt;/security&gt;</strong>
+    ...
+    &lt;/cache-container&gt;
+&lt;/subsystem&gt;
+</code></pre>
+</li>
+<li>
+<p>Further down in the same subsystem configuration, add the following (in <strong>bold</strong>):</p>
+
+<pre><code><strong>&lt;local-cache name="tasks" start="EAGER"&gt;
+    &lt;locking acquire-timeout="30000" concurrency-level="1000" striping="false"/&gt;
+    &lt;transaction mode="NONE"/&gt;
+    &lt;security&gt;
+      &lt;authorization roles="taskusers"/&gt;
+    &lt;/security&gt;
+&lt;/local-cache&gt;</strong>
+&lt;/cache-container&gt;
+        &lt;cache-container name="security"/&gt;
+</code></pre>
+</li>
+<li>
+<p>Create an application user using this command (replace strings after <strong>-u</strong> and <strong>-p</strong> with username and password of your choice, respectively)</p>
+
+<pre><code>./target/jboss-datagrid-6.3.0-server/bin/add-user.sh -a -g taskusers -u thomas -p thomas-123 -r ApplicationRealm
+</code></pre>
+</li>
+<li>
+<p>Start the servers runing the following commands from different console windows.
+EAP Server: </p>
+
+<pre><code>$ ./target/jboss-eap-6.3/bin/standalone.sh
+</code></pre>
+
+<p>JDG Server:</p>
+
+<pre><code>$ ./target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+</code></pre>
+</li>
+<li>
+<p>In JBoss Developer Studio, expand directory <code>/src/main/java/</code> and create a new Java Class under <code>org.jboss.infinispan.demo</code> called <code>LoginHandler</code>, and implement it like this:</p>
+
+<pre><code>package org.jboss.infinispan.demo;
+
+import java.io.IOException;
+
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.sasl.RealmCallback;
+
+public class LoginHandler implements CallbackHandler {
+
+    final private String login;
+    final private char[] password;
+    final private String realm;
+
+    public LoginHandler(String login, char[] password, String realm) {
+        this.login = login;
+        this.password = password;
+        this.realm = realm;
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+        for (Callback callback : callbacks) {
+            if (callback instanceof NameCallback) {
+                ((NameCallback) callback).setName(login);
+            } else if (callback instanceof PasswordCallback) {
+                ((PasswordCallback) callback).setPassword(password);
+            } else if (callback instanceof RealmCallback) {
+                ((RealmCallback) callback).setText(realm);
+            } else {
+                throw new UnsupportedCallbackException(callback);
+            }
+        }
+    }
+
+}
+</code></pre>
+</li>
+<li>
+<p>In the same directory, open <code>Config.java</code> and add the <code>LoginHandler</code> as a callbackHandler, together with the other security configurations like this</p>
+
+<pre><code>security()
+            .authentication()
+                .enable()
+                .serverName("tasks")
+                .saslMechanism("DIGEST-MD5")
+                .callbackHandler(new LoginHandler("thomas", "thomas-123".toCharArray(), "ApplicationRealm"));
+</code></pre>
+
+<p>The new Config.java should look like this (with new code in <strong>bold</strong>)</p>
+
+<pre><code>package org.jboss.infinispan.demo;
+
+import javax.enterprise.inject.Produces;
+
+import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.jboss.infinispan.demo.model.Task;
+
+/**
+ * This class produces configured cache objects via CDI
+ *  
+ * @author tqvarnst
+ *
+ */
+public class Config {
+
+    @Produces
+    public RemoteCache&lt;Long, Task&gt; getRemoteCache() {
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        builder.addServer()
+            <strong>.host("localhost").port(11322)
+            .security()
+            .authentication()
+                .enable()
+                .serverName("tasks")
+                .saslMechanism("DIGEST-MD5")
+                .callbackHandler(new LoginHandler("thomas", "thomas-123".toCharArray(), "ApplicationRealm"));</strong>
+        return new RemoteCacheManager(builder.build(), true).getCache("tasks");
+    }
+}   
+</code></pre>
+    
+<p><strong>Note: <em>If you did change the username and password previously, when creating the application user, you need to update the strings <code>"thomas"</code> and <code>"thomas-123"</code> with the new username and password respectively</em></strong></p>
+</li><li>
+<p>Open <code>TaskServerTest.java</code> and add LoginHandler to to the ShrinkWrap test. The new <code>createDeployment</code> method (with new code in <strong>bold</strong>) will look like</p>
+    <pre><code>@Deployment
+	public static WebArchive createDeployment() {
+		File[] jars = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
+		
+		return ShrinkWrap
+				.create(WebArchive.class, "todo-test.war")
+				.addClass(Config.class)
+				.addClass(Task.class)
+				.addClass(TaskService.class)
+				<strong>.addClass(LoginHandler.class)</strong>
+				.addAsLibraries(jars)
+				.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+	}</code></pre>
+</li>
+
+<li><p>Save your code changes, right-click and choose <code>Run As  -> JUnit Test</code></p></li>
+
+<li>
+<p>Deploy the application using the following command from the lab6 directory</p>
+
+<pre><code>$ mvn clean package jboss-as:deploy
+</code></pre>
+</li>
+<li><p>Congratulations, you are done with lab 6.</p></li>
+</ol>
+</article>
+  </div>
+
+  </div>
+</div>
+
+  </body>
+</html>
+
