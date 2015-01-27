@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+  <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg--eap-lab-2-guide" class="anchor" href="#jdg--eap-lab-2-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG + EAP Lab 2 Guide</h1>
+
+<p>This explains the steps for lab 2, either follow them step-by-step or if you feel adventurous try to accomplish goals without the help of the step-by-step guide.</p>
+
+<h2>
+<a id="user-content-background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>In Lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement. </p>
+
+<p>A competing vendor that has a similar task management solution released a new feature where users can filter their tasks. Something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. An external consultant are hired and to implement this feature, but since he wasn't familiar with JDG he implemented the filter solution using JPA query. This is however not responsive enough and we refactor the filter function to query JDG instead.</p>
+
+<p>JDG has very advanced querying capabilities in library mode (client/server quering is tech preview for JDG 6.3)</p>
+
+<h2>
+<a id="user-content-use-case" class="anchor" href="#use-case" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use-case</h2>
+
+<p>You are tasked to rewrite the filter implementation using queries in JDG instead of JPA queries. However the Task data model is used in the native mobile application and since it will take a while before we can update the mobile application you are not allowed to change the org.jboss.infinspan.demo.model.Task class.</p>
+
+<h2>
+<a id="user-content-objectives" class="anchor" href="#objectives" aria-hidden="true"><span class="octicon octicon-link"></span></a>Objectives</h2>
+
+<p>Your task in Lab 2 re-implement the filtering method, but using JDG Queries. 
+The UI and REST methods are already implemented.</p>
+
+<p>Basically you should replace the DB Query with a JDG Query and you will have to 
+do this without modifying the org.jboss.infinspan.demo.model.Task class. </p>
+
+<p>To to this we need to do the following:</p>
+
+<ol class="task-list">
+<li>Setup the lab environment</li>
+<li>Add developer dependencies:
+Update the pom.xml and add developer dependency to infinispan-query</li>
+<li>Add runtime dependencies
+Update jboss-deployment-structure.xml to add runtime dependency to infinispan-query</li>
+<li>Update configuration
+Enable indexing in the API Configuration. Hint <a href="http://red.ht/1nSniBo">See the Infinispan Query Index</a>
+
+<ul class="task-list">
+<li>The index should only be persisted in RAM</li>
+<li>Since we will later deploy this on mulitple EAP instances we need to allow for shared indexes.</li>
+<li>The index should be based on the <code>title</code> field from <code>org.jboss.infinspan.demo.model.Task</code>
+</li>
+</ul>
+</li>
+<li>Write the implementation to Query JDG
+Replace the implementation of <code>TaskSerivce.filter(String)</code> to query JDG instead of DB</li>
+</ol>
+
+<h2>
+<a id="user-content-step-by-step" class="anchor" href="#step-by-step" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step-by-Step</h2>
+
+<h3>
+<a id="user-content-setup-the-lab-environment" class="anchor" href="#setup-the-lab-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup the lab environment</h3>
+
+<p>To assist with setting up the lab environment we have provided a shell script that does this. </p>
+
+<p><strong>Note:</strong> <em>If you previously setup up lab 1 using this script there is no need to do this for lab 2_</em></p>
+
+<ol class="task-list">
+<li>
+<p>Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this</p>
+
+<pre><code>    $ sh init-lab.sh --lab=2
+</code></pre>
+</li>
+</ol>
+
+<h3>
+<a id="user-content-add-developer-dependencies" class="anchor" href="#add-developer-dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add developer dependencies</h3>
+
+<ol class="task-list">
+<li>Open the lab2 pom.xml (see below)</li>
+<li>
+<p>Select the dependencies tab</p>
+
+<p><a href="./images/lab2-image1.png" target="_blank"><img src="./images/lab2-image1.png" alt="img1" style="max-width:100%;"></a></p>
+</li>
+<li><p>With <code>infinispan-query [provided]</code> selected, click the <strong>Properties...</strong> button</p></li>
+<li>
+<p>The Dependency Properties window will appear.</p>
+
+<p><a href="./images/lab2-image3.png" target="_blank"><img src="./images/lab2-image3.png" alt="img2" style="max-width:100%;"></a></p>
+</li>
+<li>
+<p>Verify the Type value is <code>jar</code> and the Scope is <code>provided</code>. Click OK once you are done.</p>
+</li>
+</ol>
+
+<h3>
+<a id="user-content-add-runtime-dependencies" class="anchor" href="#add-runtime-dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add runtime dependencies</h3>
+
+<ol class="task-list">
+<li>Open <code>src/main/webapp/WEB-INF/jboss-deployment-structure.xml</code> </li>
+<li>
+<p>Add <code>org.infinispan.query</code> module. The content of the file should look like this:</p>
+
+<pre><code>&lt;jboss-deployment-structure&gt;
+    &lt;deployment&gt;
+        &lt;dependencies&gt;
+            &lt;module name="org.infinispan" slot="jdg-6.3" services="import"/&gt;
+            &lt;module name="org.infinispan.cdi" slot="jdg-6.3" meta-inf="import"/&gt;
+            &lt;module name="org.infinispan.query" slot="jdg-6.3" services="import"/&gt;
+        &lt;/dependencies&gt;
+    &lt;/deployment&gt;
+&lt;/jboss-deployment-structure&gt;
+</code></pre>
+</li>
+<li><p>After saving It's recommended to run the JUnit test to verify that everything deploys fine.</p></li>
+</ol>
+
+<h3>
+<a id="user-content-update-the-configuration" class="anchor" href="#update-the-configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Update the configuration</h3>
+
+<ol class="task-list">
+<li>Open <code>src/main/java/org/jboss/infinispan/demo/Config.java</code>
+</li>
+<li>
+<p>After the global configuration we need to create a <code>SearchMapping</code> object that tells JDG how to index <code>Task</code> objects </p>
+
+<pre><code>SearchMapping mapping = new SearchMapping();
+mapping.entity(Task.class).indexed().providedId()
+    .property("title", ElementType.METHOD).field();
+</code></pre>
+</li>
+<li>
+<p>Create a <code>Properties</code> object and store the <code>SearchMapping</code> object under the <code>org.hibernate.search.Environment.MODEL_MAPPING</code> key.</p>
+
+<pre><code>Properties properties = new Properties();
+    properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
+</code></pre>
+</li>
+<li>
+<p>We also need to tell JDG (or Lucene) to store the indexes in ram memory by adding a property with key "default.directory_provider" and value "key". </p>
+
+<pre><code>properties.put("default.directory_provider", "ram");
+</code></pre>
+</li>
+<li><p>Now we can enable the index on the configuration object by adding <code>.indexing().enable()</code> to the fluid API before <code>.build()</code>.</p></li>
+<li>Also we want to configure the index to support clustering adding <code>.indexLocalOnly(false)</code> to the fluid API before <code>.build()</code>.</li>
+<li>
+<p>And finally we want to pass in the properties configuration by adding <code>.withProperties(properties)</code> to the fluid API before <code>.build()</code>. The config class should now look like this:</p>
+
+<pre><code>package org.jboss.infinispan.demo;
+
+import java.lang.annotation.ElementType;
+import java.util.Properties;
+
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Default;
+import javax.enterprise.inject.Produces;
+
+import org.hibernate.search.cfg.SearchMapping;
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.global.GlobalConfiguration;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
+import org.infinispan.eviction.EvictionStrategy;
+import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
+import org.jboss.infinispan.demo.model.Task;
+
+/**
+ * This is Class will be used to configure JDG Cache
+ * @author tqvarnst
+ * 
+ * DONE: Add configuration to enable indexing of title field of the Task class
+ *
+ */
+public class Config {
+
+    private EmbeddedCacheManager manager;
+
+    @Produces
+    @ApplicationScoped
+    @Default
+    public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
+        if (manager == null) {
+            GlobalConfiguration glob = new GlobalConfigurationBuilder()
+                    .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+                    // method enables the jmx statistics of the global
+                    // configuration and allows for duplicate JMX domains
+                    .build();
+
+            SearchMapping mapping = new SearchMapping();
+            mapping.entity(Task.class).indexed().providedId()
+                  .property("title", ElementType.METHOD).field();
+
+            Properties properties = new Properties();
+            properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
+            properties.put("default.directory_provider", "ram");
+
+
+            Configuration loc = new ConfigurationBuilder().jmxStatistics()
+                    .enable() // Enable JMX statistics
+                    .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+                    .indexing()
+                        .enable()
+                        .indexLocalOnly(false)
+                        .withProperties(properties)
+                    .build();
+            manager = new DefaultCacheManager(glob, loc, true);
+        }
+        return manager;
+    }
+
+    @PreDestroy
+    public void cleanUp() {
+        manager.stop();
+        manager = null;
+    }
+}
+</code></pre>
+</li>
+</ol>
+
+<h3>
+<a id="user-content-write-the-implementation-to-query-jdg" class="anchor" href="#write-the-implementation-to-query-jdg" aria-hidden="true"><span class="octicon octicon-link"></span></a>Write the implementation to Query JDG</h3>
+
+<ol class="task-list">
+<li>Open <code>src/main/java/org/jboss/infinispan/demo/TaskService.java</code>
+</li>
+<li>Navigate to the <code>public Collection&lt;Task&gt; filter(String input)</code> method and delete the code implementation</li>
+<li>
+<p>In order create QueryBuilder and run that query we need a <code>SearchManager</code> object. We can get that by calling <code>Search.getSearchManager(cache)</code></p>
+
+<pre><code>SearchManager sm = Search.getSearchManager(cache);
+</code></pre>
+</li>
+<li>
+<p>To create a <code>QueryBuilder</code> object we can then get a <code>SearchFactory</code> from the <code>SearchManager</code> and call <code>buildQueryBuilder().forEntity(Task.class).get()</code> on it.</p>
+
+<pre><code>QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
+</code></pre>
+</li>
+<li>
+<p>Now we can create a <code>Query</code> object from the <code>QueryBuilder</code> using the fluid api to specify which Field to match etc.</p>
+
+<pre><code>Query q = qb.keyword().onField("title").matching(input).createQuery();
+</code></pre>
+</li>
+<li>
+<p>We can now get a <code>CacheQuery</code> object by using the <code>SearchManager.getQuery(...)</code> method.</p>
+
+<pre><code>CacheQuery cq = sm.getQuery(q, Task.class); 
+</code></pre>
+</li>
+<li>
+<p>The <code>CacheQuery</code> extends <code>Iterable&lt;Object&gt;</code> directly, but since we are expecting a <code>Collection&lt;Task&gt;</code> to return we will have to call <code>CacheQuery.list()</code> to get a <code>List&lt;Object&gt;</code> back. This will now have to be cast to typed Collection using double Casting.</p>
+
+<pre><code>return (Collection&lt;Task&gt;)(List)cq.list();
+</code></pre>
+
+<p>Note that since we are using a QueryBuilder specifically for Task.class we can safely do this cast.</p>
+</li>
+<li>
+<p>You also need to add the following import statements</p>
+
+<pre><code>import java.util.List;
+import org.apache.lucene.search.Query;
+import org.hibernate.search.query.dsl.QueryBuilder;
+import org.infinispan.Cache;
+import org.infinispan.query.CacheQuery;
+import org.infinispan.query.Search;
+import org.infinispan.query.SearchManager;
+</code></pre>
+</li>
+
+<li>
+<p><code>TaskService.java</code> should now look like this</p>
+<pre><code>package org.jboss.infinispan.demo;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import java.util.List;
+import org.apache.lucene.search.Query;
+import org.hibernate.search.query.dsl.QueryBuilder;
+import org.infinispan.Cache;
+import org.infinispan.query.CacheQuery;
+import org.infinispan.query.Search;
+import org.infinispan.query.SearchManager;
+import org.jboss.infinispan.demo.model.Task;
+
+/**
+ * This class is used to query, insert or update Task object.
+ * @author tqvarnst
+ *
+ */
+@Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+public class TaskService {
+
+	@PersistenceContext
+    EntityManager em;
+	
+	@Inject
+	Cache<Long,Task> cache;
+	
+	Logger log = Logger.getLogger(this.getClass().getName());
+
+	/**
+	 * This methods should return all cache entries, currently contains mockup code. 
+	 * @return
+	 */
+	public Collection<Task> findAll() {
+		return cache.values();
+	}
+	
+	/**
+	 * This method filters task based on the input
+	 * @param input - string to filter on
+	 * @return
+	 * 
+	 * FIXME: The current implementation is database query, replace it with a JDG query instead
+	 */
+	public Collection<Task> filter(String input) {
+		SearchManager sm = Search.getSearchManager(cache);
+		QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
+		Query q = qb.keyword().onField("title").matching(input).createQuery();
+		CacheQuery cq = sm.getQuery(q, Task.class);
+		return (Collection<Task>)(List)cq.list(); //Since we only Query Task.class we can safely cast this
+	}
+
+	/**
+	 * This method persists a new Task instance
+	 * @param task
+	 * 
+	 */
+	public void insert(Task task) {
+		if(task.getCreatedOn()==null) {
+			task.setCreatedOn(new Date());
+		}
+		em.persist(task);
+		cache.put(task.getId(),task);
+	}
+
+
+	/**
+	 * This method persists an existing Task instance
+	 * @param task
+	 * 
+	 */
+	public void update(Task task) {
+		Task newTask = em.merge(task);
+		em.detach(newTask);
+		cache.replace(task.getId(),newTask);
+	}
+	
+	/**
+	 * This method deletes an Task from the persistence store
+	 * @param task
+	 * 
+	 */
+	public void delete(Task task) {
+		//Note object may be detached so we need to tell it to remove based on reference
+		em.remove(em.getReference(task.getClass(),task.getId()));
+		cache.remove(task.getId());
+	}
+	
+	
+	/**
+	 * This method is called after construction of this SLSB.
+	 * 
+	 */
+	@PostConstruct
+	public void startup() {
+		
+		log.info("### Querying the database for tasks!!!!");
+		final CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+		final CriteriaQuery<Task> criteriaQuery = criteriaBuilder.createQuery(Task.class);
+	
+		Root<Task> root = criteriaQuery.from(Task.class);
+		criteriaQuery.select(root);
+		Collection<Task> resultList = em.createQuery(criteriaQuery).getResultList();
+		
+		for (Task task : resultList) {
+			this.insert(task);
+		}
+		
+	}
+	
+}
+
+</code></pre>
+</li>   
+
+</ol>
+
+<h3>
+<a id="user-content-test-and-deploy" class="anchor" href="#test-and-deploy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Test and deploy</h3>
+<p>Now you are almost finished with Lab 2, you should now run the Arquillian tests and then deploy the application.</p>
+
+<li>
+<p>In another terminal (on the developer PC) change directory to the project lab2</p>
+<pre><code>$ cd projects/lab2
+</code></pre>
+</li>
+<p>Run the JUnit test either in JBDS (see an example in the next step) or by using command line (below). To run the test the <code>arquillian-jbossas-remote-7</code> profile will have to be activated.</p>
+
+<pre><code>$ mvn -P arquillian-jbossas-remote-7 test
+</code></pre>
+</li>
+<li>
+<p>Run the JUnit test by right clicking TaskServiceTest.java and select Run As ... -&gt; JUnit Test</p>
+
+<p><a href="./images/lab1-image1.png" target="_blank"><img src="./images/lab1-image1.png" alt="Image of how to run junit test" style="max-width:100%;"></a></p>
+</li>
+      
+<li>
+<p>Build and deploy the project</p>
+
+<pre><code>$ mvn package jboss-as:deploy
+</code></pre>
+</li>
+<li><p>Verify in a browser that application deployed nice successfully by opening <a href="http://localhost:8080/mytodo">http://localhost:8080/mytodo</a> in a browser. </p></li>
+<li>
+<p>Click around and verify that you can now filter tasks, in addition to other functions</p>
+</article>
+  </div>
+  </div>
+</div>
+  </body>
+</html>
+

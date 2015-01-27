@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+  <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg--eap-lab-7-guide" class="anchor" href="#jdg--eap-lab-7-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG + EAP Lab 7 Guide</h1>
+
+<p>This explains the steps for lab 6, either follow them step-by-step or if you 
+feel adventurous try to accomplish goals without the help of the step-by-step guide.</p>
+
+<h2>
+<a id="user-content-background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>myTODO application is a success, but we don't know much about our users. The marketing department has requirements for tracking : which are the devices (Smartphones and Tablets, Computers) users are accessing myTODO with, the OS of those devices and their preferred browsers.</p>
+
+<h2>
+<a id="user-content-use-case" class="anchor" href="#use-case" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use-case</h2>
+
+<p>We will implement a solution to store this user device information. To minimize any impact to performance, user device information should be stored unstructured, and via Map/Reduce pattern we can structure the data further and interprete it using reporting tools. The user device information is captured from the User-Agent HTTP header that browsers typically provide.</p>
+
+<h2>
+<a id="user-content-these-are-the-main-tasks-of-lab-7" class="anchor" href="#these-are-the-main-tasks-of-lab-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>These are the main tasks of lab 7</h2>
+
+<ol class="task-list">
+<li>Create a local library mode cache together with the RemoteCache</li>
+<li>Extend the REST layer to store the unstructured request data in a local cache</li>
+<li>Provide a BiSerivce (Business Intelligence Service) class that can structure the data and generate summarized views of the data.</li>
+<li>Provide a BiEndpoint (REST Service) to enable UI access to the BiService</li>
+</ol>
+
+<h2>
+<a id="user-content-step-by-step" class="anchor" href="#step-by-step" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step-by-Step</h2>
+
+<ol class="task-list">
+<li>Open <code>~/jdg-labs/projects/lab7</code> project in JBoss Developer Studio</li>
+<li>
+<p>Open <code>/src/main/java/org/jboss/infinispan/demo/Config.java</code> and fix the <code>getLocalCacheManager</code> which should look like this:</p>
+
+<pre><code>private EmbeddedCacheManager getLocalCacheManager() {
+    GlobalConfiguration glob = new GlobalConfigurationBuilder()
+        .globalJmxStatistics().allowDuplicateDomains(true).enable().build();
+
+    org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
+        .expiration().lifespan(1,TimeUnit.DAYS)
+        .build();
+
+    return new DefaultCacheManager(glob, loc, true);
+}
+</code></pre>
+</li>
+<li><p>Add these <code>import</code> statements</p>
+<pre><code>
+import org.infinispan.configuration.global.GlobalConfiguration;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
+import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
+import java.util.concurrent.TimeUnit;
+</code></pre>    
+</li>
+<li>
+<p>Open the <code>org.jboss.infinispan.demo.rest.TaskEndpoint.java</code> file, and make the following changes</p>
+
+<pre><code>@Inject private Cache&lt;Long, String&gt; requestCache;
+</code></pre>
+    
+<p>Here the request cache is injected.</p>
+</li><li>
+<p>Now add the following line to all REST methods (ie: update(), listAll(), create() methods)</p>
+
+<pre><code>requestCache.putAsync(System.nanoTime(), headers.getRequestHeader("user-agent").get(0));
+</code></pre>
+</li>
+<li><p>Add the following <code>import</code> statement</p>
+    <p><code>import org.infinispan.Cache;</code></p>
+</li>
+<li>
+<p>Open <code>org.jboss.infinispan.demo.BIService.java</code> and make the following changes</p>
+<li><p>Remove <code>@SuppressWarnings("unused")</code></p></li>
+<li><p>Add these <code>import</code> statements</p><pre>
+<code>
+import javax.inject.Inject;
+import org.infinispan.AdvancedCache;
+import org.infinispan.Cache;
+import org.infinispan.distexec.mapreduce.MapReduceTask;
+import org.jboss.infinispan.demo.mapreduce.CountReducer;
+import org.jboss.infinispan.demo.mapreduce.UserBrowserVendorCountMapper;
+import org.jboss.infinispan.demo.mapreduce.UserOSCountMapper;
+</code></pre></li>
+<li><p>Change the implementation of <code>getRequestStatiscsPerOs()</code> method to</p>
+
+<pre><code>public Map&lt;String,Integer&gt; getRequestStatiscsPerOs() {
+    return new MapReduceTask&lt;Long, String, String, Integer&gt;(requestCache.getAdvancedCache())
+            .mappedWith(new UserOSCountMapper())
+            .reducedWith(new CountReducer())
+            .execute(); 
+}
+</code></pre></li>
+
+<p>Change the implementation of <code>getRequestStatiscsPerBrowser()</code> method to</p>
+
+<pre><code>public Map&lt;String,Integer&gt; getRequestStatiscsPerBrowser() {
+    return new MapReduceTask&lt;Long, String, String, Integer&gt;(requestCache.getAdvancedCache())
+            .mappedWith(new UserBrowserVendorCountMapper())
+            .reducedWith(new CountReducer())
+            .execute(); 
+}
+</code></pre>
+    
+    
+<p>Change the implementation of <code>generateTestData()</code> method to</p>
+<pre><code>public void generateTestData() {
+		Random random = new Random(System.currentTimeMillis());
+		
+		for(int i=0;i<5000;i++) {
+			int agent = random.nextInt(fakeUserAgents.length);
+			requestCache.put(new Long(i), fakeUserAgents[agent] );
+		}
+	}    
+</code></code></pre>
+</li>
+<li><p>Replace this code</p><pre><code>Map<String, Integer> browserMap = new HashMap<String, Integer>();
+	Map<String, Integer> osMap = new HashMap<String, Integer>();
+</code></pre><p>with this</p><pre><code>@Inject
+	Cache < Long,String > requestCache;</code></pre></li>
+        
+<li><p>Analyse what the mapping classes <code>UserOSCountMapper</code> and <code>UserBrowserVendorCountMapper</code> aim to achieve</p></li>
+<li>
+<p>Open <code>CountReducer.java</code> and add the implementation like below:</p>
+
+<pre><code>@Override
+public Integer reduce(String reducedKey, Iterator&lt;Integer&gt; iter) {
+    int sum = 0;
+    while (iter.hasNext()) {
+        Integer i = (Integer) iter.next();
+        sum += i;
+    }
+    return sum;
+}
+</code></pre>
+</li>
+<li><p>Open <code>TaskServiceTest.java</code> and add <code>import org.infinispan.Cache;</code></p></li>
+<li><p>Analyse the <code>testRequestCache()</code> method</p></li>
+<li>Run the JUnit test</li>
+<li>
+<p>Deploy the application using the following command from projects/lab7 dir</p>
+
+<pre><code>$ mvn clean package jboss-as:deploy
+</code></pre>
+</li>
+<li>Congratulations, you have completed all the labs.</li>
+</ol>
+</article>
+  </div>
+
+  </div>
+</div>
+
+  </body>
+</html>
+

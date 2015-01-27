@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+  <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg--eap-lab-5-guide" class="anchor" href="#jdg--eap-lab-5-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG + EAP Lab 5 Guide</h1>
+
+<p>This explains the steps for lab 5, either follow them step-by-step or if you 
+feel adventurous try to accomplish goals without the help of the step-by-step guide.</p>
+
+<h2>
+<a id="user-content-background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>The myTODO application is a huge success and over 100 000 users are today using it to synchronise the task list between different devices. Even though each entry are typically small the data is growing fast. By mid next year numbers of users and expected to grow to 500 000 and 1 million add the end of the year. However the success gives new challenges. The memory used to store tasks is growing fast.</p>
+
+<h3>
+<a id="user-content-memory-usage-today-in-the-future" class="anchor" href="#memory-usage-today-in-the-future" aria-hidden="true"><span class="octicon octicon-link"></span></a>Memory usage today in the future</h3>
+
+<p>The average length of a title is 20 characters (about 80 bytes). Together with two Date objects (32 bytes each) and the other fields we can assume that each Task object will take about 200 bytes of memory. The average number of tasks per user is 50. Today the effective data storage (data without meta-data) is about 1 GB of data [100 000 x 50 tasks per user x 200 bytes per task / (1024^3)]. Given a bit of meta-data the amount of java heap used to store objects is about 1.2 GB. </p>
+
+<ol class="task-list">
+<li>What's the expected storage need for data mid next year?</li>
+<li>What's the expected storage need for data end of next year?</li>
+</ol>
+
+<p>Given that myTODO application is currently using replicated mode these 1.5 GB are stored the same on each node. Switching to distributed mode would mean that we can grow the in-memory storage by adding more nodes.</p>
+
+<p>Using library mode we are using the same java heap for storage as the application itself is using. Using Client/Server mode with HotRod can bring lots of benefits since we can resource optimize. Java EE applications needs CPU resources and may actually behave better with a lower java heap, while JDG Server uses less CPU and can be optimized to use larger java heap.</p>
+
+<h2>
+<a id="user-content-use-case" class="anchor" href="#use-case" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use-case</h2>
+
+<p>Rewrite the application to only use JDG Client Server mode.</p>
+
+<h2>
+<a id="user-content-these-are-the-main-tasks-of-lab-5" class="anchor" href="#these-are-the-main-tasks-of-lab-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>These are the main tasks of lab 5</h2>
+
+<ol class="task-list">
+<li>Setup the lab environment</li>
+<li>Add dependencies to HotRod client</li>
+<li>Rewrite the <code>TaskService</code> to use HotRod instead of client mode</li>
+<li>Remove dependencies to jdg-core</li>
+</ol>
+
+<h3>
+<a id="user-content-setup-the-lab-environment" class="anchor" href="#setup-the-lab-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup the lab environment</h3>
+
+<p>To assist with setting up the lab environment we have provided a shell script that does this. </p>
+
+<ol class="task-list">
+<li>
+<p>Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this</p>
+
+<pre><code>    $ sh init-lab.sh --lab=5
+</code></pre>
+
+<p>Stop any existing servers from previous labs and Start the servers in separate consoles using the following commands</p>
+
+<p>EAP Server: </p>
+
+<pre><code>$ ./target/jboss-eap-6.3/bin/standalone.sh
+</code></pre>
+
+<p>JDG Server:</p>
+
+<pre><code>$ ./target/jboss-datagrid-6.3.0-server/bin/standalone.sh -Djboss.socket.binding.port-offset=100
+</code></pre>
+</li>
+</ol>
+
+<h2>
+<a id="user-content-step-by-step" class="anchor" href="#step-by-step" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step-by-Step</h2>
+
+<ol class="task-list">
+<li>Discussion pros and cons with different options for solution to the memory usage issuses with you the person to your collegues.</li>
+<li>Open <code>~/jdg-labs/project/lab5</code> in JBoss Developer Studio</li>
+<li>
+<p>Add HotRod client development and runtime dependencies by opening <code>pom.xml</code> and uncomment the following lines:</p>
+
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.infinispan&lt;/groupId&gt;
+    &lt;artifactId&gt;infinispan-commons&lt;/artifactId&gt;
+    &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.infinispan&lt;/groupId&gt;
+    &lt;artifactId&gt;infinispan-client-hotrod&lt;/artifactId&gt;
+    &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<p><strong>Note:</strong> We are here using the scope <code>compile</code> since we want Apache Maven to add these jars and their transient dependencies to the subdirectory <code>src/main/webapp/WEB-INF/lib</code></p>
+</li>
+<li>
+<p>Before we rewrite the contents of <code>TaskService.java</code> we need to configure the HotRod client using CDI to produce a <code>RemoteCache</code> object. Open <code>src/main/java/org/jboss/infinispan/demo/Config.java</code> and add the following to it:</p>
+
+<pre><code>@Produces
+public RemoteCache&lt;Long, Task&gt; getRemoteCache() {
+    ConfigurationBuilder builder = new ConfigurationBuilder();
+    builder.addServer().host("localhost").port(11322);
+    return new RemoteCacheManager(builder.build(), true).getCache("default");
+}
+</code></pre>
+
+<p><strong>Note:</strong> We are reusing the default cache in this lab, in lab 6 we will configure our own cache instead.</p>
+</li>
+<li>
+<p>You also need to add the following <code>import</code> statements if you IDE doesn't fix that</p>
+
+<pre><code>import javax.enterprise.inject.Produces;
+
+import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.jboss.infinispan.demo.model.Task;
+</code></pre>
+</li>
+<li><p>Open the <code>src/main/java/org/jboss/infinispan/demo/TaskService.java</code></p></li>
+<li>
+<p>Inject a <code>RemoteCache</code> object like this:</p>
+
+<pre><code>@Inject
+RemoteCache&lt;Long, Task&gt; cache;
+</code></pre>
+</li>
+<li>
+<p>You also need to add the following import statements</p>
+
+<pre><code>
+import javax.inject.Inject;
+import javax.ejb.Stateless;
+import java.util.Date;
+import org.infinispan.client.hotrod.RemoteCache;
+</code></pre>
+</li>
+<li>
+<p>Implement the <code>findAll()</code> method like this:</p>
+
+<pre><code>public Collection&lt;Task&gt; findAll() {
+    return cache.getBulk().values();
+}
+</code></pre>
+</li>
+<li>
+<p>Implement the <code>insert(Task)</code> method like this:</p>
+
+<pre><code>public void insert(Task task) {
+    if(task.getCreatedOn()==null) {
+        task.setCreatedOn(new Date());
+    }
+    task.setId(System.nanoTime());
+    cache.putIfAbsent(task.getId(), task);
+}       
+</code></pre>
+</li>
+<li>
+<p>Implement the <code>update(Task)</code> method like this:</p>
+
+<pre><code>public void update(Task task) {
+    cache.replace(task.getId(), task);
+}
+</code></pre>
+</li>
+<li>
+<p>Implement both <code>delete(Task)</code> method and <code>delete(Long)</code> methods like this:</p>
+
+<pre><code>
+public void delete(Long id) {
+    cache.remove(id);
+}
+</code></pre>
+<pre><code> 
+public void delete(Task task) {
+    this.delete(task.getId());
+}
+</code></pre>
+</li>
+<li><p>Save the <code>TaskService.java</code> file</p></li>
+<li>Open <code>TaskServiceTest.java</code> and uncomment the the <code>File[] jars = ....</code> and <code>.addAsLibraries(...)</code>
+</li>
+<li><p>Add these <code>import</code> statements</p>
+<pre><code>
+import java.io.File;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;</code></pre></li>
+<li>Run the JUnit test and verify that everything works.</li>
+<li>
+<p>Deploy the application using the following command from lab7 dir</p>
+
+<pre><code>$ mvn clean package jboss-as:deploy
+</code></pre>
+</li>
+<li><p>Congratulations you are done with lab 5.</p></li>
+</ol>
+</article>
+  </div>
+
+  </div>
+</div>
+
+  </body>
+</html>
+

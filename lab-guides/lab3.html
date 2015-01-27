@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+  <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg--eap-lab-3-guide" class="anchor" href="#jdg--eap-lab-3-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG + EAP Lab 3 Guide</h1>
+
+<p>This explains the steps for lab 3, either follow them step-by-step or if you 
+feel adventurous to accomplish the objectives without the help of the step-by-step section.</p>
+
+<h2>
+<a id="user-content-background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>In Lab 2 we implemented querying by providing search mapping as to how to index
+objects via configuration. The search mapping for Lab2 was very simple, but what
+if your data model was much more complex with links between objects and 
+inheritance. Then the configuration will become more and more complex. Keeping 
+the search mapping configuration and data model in sync will become harder and 
+harder over time as your data models grows. </p>
+
+<p>The Best practice recommendation for situations like this is to keep the 
+mapping close to the model. So similar to JPA, Hibernate Search (which is the 
+base for JDG Querying) supports annotation as meta data that describes the 
+search mapping. </p>
+
+<p>This does requires that we can edit the data model. </p>
+
+<h2>
+<a id="user-content-objectives" class="anchor" href="#objectives" aria-hidden="true"><span class="octicon octicon-link"></span></a>Objectives</h2>
+
+<p>Your task in Lab 3 is to move the meta-data/configuration of how to index the Task object from the Config object to instead provide this as annotations to the data model object.</p>
+
+<p>These are the main tasks of lab 3</p>
+
+<ol class="task-list">
+<li>Remove the search mapping from the <code>org.jboss.infinispan.demo.Config</code>.</li>
+<li>Update the <code>org.jboss.infinispan.demo.model.Task</code> model with Search mapping 
+annotation.</li>
+</ol>
+
+<h3>
+<a id="user-content-setup-the-lab-environment" class="anchor" href="#setup-the-lab-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup the lab environment</h3>
+
+<p>To assist with setting up the lab environment we have provided a shell script that does this. </p>
+
+<p><strong>Note:</strong> <em>If you previously setup up lab 1 or 2 using this script there is no need to do this for lab 3</em></p>
+
+<ol class="task-list">
+<li>
+<p>Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this</p>
+
+<pre><code>    $ sh init-lab.sh --lab=3
+</code></pre>
+</li>
+</ol>
+
+<h2>
+<a id="user-content-step-by-step" class="anchor" href="#step-by-step" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step-by-Step</h2>
+
+<ol class="task-list">
+<li>Open <code>src/main/java/org/jboss/infinispan/demo/Config.java</code> </li>
+<li>
+<p>Look at the search mapping entries in the <code>defaultEmbeddedCacheConfiguration()</code> method </p>
+
+<pre><code>            SearchMapping mapping = new SearchMapping();
+            mapping.entity(Task.class).indexed().providedId()
+                  .property("title", ElementType.METHOD).field();
+
+            Properties properties = new Properties();
+            properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
+            properties.put("default.directory_provider", "ram");
+</code></pre>
+</li>
+<li><p>Open <code>src/main/java/org/jboss/infinispan/demo/model/Task.java</code></p></li>
+<li>Add <code>@org.hibernate.search.annotations.Indexed</code> as a modifier for the Class called <strong>Task</strong></li>
+<li>Add <code>@org.hibernate.search.annotations.Field(store = org.hibernate.search.annotations.Store.YES)</code>
+as the modifier to the String called <strong>title</strong>.</li>
+
+<li><p>The resulting code will contain</p>
+    <code>@org.hibernate.search.annotations.Indexed
+<p>public class <strong>Task</strong> implements Serializable {</p>
+<p>..... </p>   
+<p>&emsp;&emsp;@Column(length = 100) </p>
+<p>&emsp;&emsp;@org.hibernate.search.annotations.Field(store = org.hibernate.search.annotations.Store.YES) </p>
+<p>&emsp;&emsp;private String <strong>title</strong>; </p>
+</code></p></li>
+<li>Ensure that the local JBoss EAP instance is running.</li>
+<li><p>Run the JUnit test to verify that everything works.</p></li>
+<li>
+<p>Change directory to projects/lab3.</p>
+<li><p>Deploy using this command</p></li>
+<pre><code>$ mvn package jboss-as:deploy
+</code></pre>
+</li>
+<li>Test the web application at <a href="http://localhost:8080/mytodo">http://localhost:8080/mytodo</a></li>
+<li><p>Congratulations, you are done with lab 3.</p></li>
+</ol>
+
+<h2>
+<a id="user-content-summary" class="anchor" href="#summary" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summary</h2>
+
+<p>In lab 2 and lab 3 we can see two different ways to enable searching objects. The lab 2 approach, using properties, we do not have to modify the indexed object and this can be a good solution when you don't have access to the source code.</p>
+    
+<p>With Annotations in lab 3, we modify the object provided we have the source code. The reason is that it's easier to maintain the indexing meta-data closer to the actual object. When updating an index object, developers can also update the indexing.</p>
+
+<p>The search function in JBoss Data Grid is very powerful, in many cases much more powerful then you would find in a typical RDBMS. For example, fields can be indexed using different methods, thus enabling more advanced queries like "Sounds Like" searches.</p>
+    <div class="admonitionblock">
+<p>Note: Complex SQL queries may be hard to migrate to JDG queries and may require that you redesign data models etc. Another possible solution may be to use Map Reduce functions instead, but we will cover that in another lab. </p>
+</article>
+  </div>
+  </div>
+</div>
+  </body>
+</html>
+

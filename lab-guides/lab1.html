@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+    <div id="readme" class="blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="mainContentOfPage"><h1>
+<a id="user-content-jdg--eap-lab-1-guide" class="anchor" href="#jdg--eap-lab-1-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>JDG + EAP Lab 1 Guide</h1>
+
+<p>This explains the steps for lab 1, either follow them step-by-step or if you  feel adventurous read the overview and try to accomplish goals without the help of the step-by-step</p>
+
+<p><strong>NOTE:</strong> If you are looking at the PDF version and have problems with for example copying text, the original Markdown is available 
+<a href="https://github.com/tqvarnst/jdg-labs/tree/master/lab-guides">here</a>.</p>
+
+<h2>
+<a id="user-content-background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>Acme Inc has released a new cloud service application to manage tasks lists called MyTODO. The application is implemented using HTML5 and AngularJS (don't worry, you don't have to know AngularJS to complete the labs) for the client side.  The server side uses CDI and REST on JBoss EAP to expose CRUD services on top of a database. There are also Android and iPhone apps for myTODO that are using the same REST services. </p>
+
+<p>The main challenge for Acme right now is that the round trip to a database is to expensive for the smart apps and the responsive UI interface. </p>
+
+<p>During a meeting with the local Red Hat Sales team, the JBoss SA suggested that Acme should use JDG to avoid the expensive round trip. Initally the JBoss SA recommends that Acme implements JDG as a side cache with minimal changes to the application.</p>
+
+<h2>
+<a id="user-content-goals" class="anchor" href="#goals" aria-hidden="true"><span class="octicon octicon-link"></span></a>Goals</h2>
+
+<p>Increase read performance 10 times by implementing JDG as side cache to the database without changing the UI, REST service or data model object. </p>
+
+<h2>
+<a id="user-content-objectives" class="anchor" href="#objectives" aria-hidden="true"><span class="octicon octicon-link"></span></a>Objectives</h2>
+
+<p>The main steps in lab1 is to:</p>
+
+<ol class="task-list">
+<li>Configure the environment for lab1</li>
+<li>Run the JUnit/Arquillian tests (performance test should fail)</li>
+<li>Install the mockup application and verify that is working</li>
+<li>Add dependencies to the maven project and to the WAR file for JDG</li>
+<li>Add dependencies to the JDG modules in EAP via jboss-deployment-structure.xml</li>
+<li>Inject a local Cache into TaskService class and implement the logic to cache findAll.</li>
+</ol>
+
+<h2>
+<a id="user-content-step-by-step" class="anchor" href="#step-by-step" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step-by-Step</h2>
+
+<p>The step-by-step guide is dived into 3 different sections matching the main steps in the overview.</p>
+
+<p>The First step over is to setup the lab environment</p>
+
+<h3>
+<a id="user-content-setup-the-lab-environment" class="anchor" href="#setup-the-lab-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup the lab environment</h3>
+
+<p>To assist with setting up the lab environment we have provided a shell script that does this. </p>
+
+<ol class="task-list">
+<li>
+<p>Run the shell script by standing in the jdg lab root directory (~/jdg-labs) execute a command like this</p>
+
+<pre><code>$ sh init-lab.sh --lab=1
+</code></pre>
+</li>
+</ol>
+
+<h3>
+<a id="user-content-install-and-build-the-mock-project" class="anchor" href="#install-and-build-the-mock-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>Install and build the mock project</h3>
+
+<ol class="task-list">
+<li>
+<p>Start the JBoss EAP if not already started in a terminal.</p>
+
+<pre><code>$ target/jboss-eap-6.3/bin/standalone.sh
+</code></pre>
+</li>
+<li>
+<p>In another terminal (on the dev host) change directory to the project</p>
+
+<pre><code>$ cd projects/lab1
+</code></pre>
+</li>
+<li>
+<p>Run the JUnit test either in JBDS (see an example in the next step) or by using command line (below). To run the test the <code>arquillian-jbossas-remote-7</code> profile will have to be activated.</p>
+
+<pre><code>$ mvn -P arquillian-jbossas-remote-7 test
+</code></pre>
+</li>
+<li>
+<p>Run the JUnit test by right clicking TaskServiceTest.java and select Run As ... -&gt; JUnit Test</p>
+
+<p><a href="./images/lab1-image1.png" target="_blank"><img src="./images/lab1-image1.png" alt="Image of how to run junit test" style="max-width:100%;"></a></p>
+</li>
+<li>
+<p>Build and deploy the project</p>
+
+<pre><code>$ mvn package jboss-as:deploy
+</code></pre>
+</li>
+<li><p>Verify in a browser that application deployed nice successfully by opening <a href="http://localhost:8080/mytodo">http://localhost:8080/mytodo</a> in a browser. </p></li>
+<li>
+<p>Click around and verify that you can add tasks and complete tasks etc.</p>
+
+<p>The Mock application is simple todo application that uses a database to store tasks. It uses angular.js on the client and the server side consists of REST services to list, create and update these tasks.</p>
+</li>
+<li><p>Go thourgh the code a bit to understand the application. </p></li>
+</ol>
+
+<h3>
+<a id="user-content-add-dependencies-to-the-maven-project" class="anchor" href="#add-dependencies-to-the-maven-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add dependencies to the maven project</h3>
+
+<p>In this step-by-step section we will add dependecies to the maven project so that we can later on add the code to store tasks in JDG. </p>
+
+<ol class="task-list">
+<li>
+<p>Open the maven pom.xml file in project/todo in an editor or IDE and add the following in the dependencyManagement section</p>
+
+<pre><code>&lt;dependencyManagement&gt;
+    ...
+    ...
+    ...
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.infinispan&lt;/groupId&gt;
+        &lt;artifactId&gt;infinispan-bom&lt;/artifactId&gt;
+        &lt;version&gt;6.1.0.Final-redhat-4&lt;/version&gt;
+        &lt;type&gt;pom&lt;/type&gt;
+        &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencyManagement&gt;
+</code></pre>
+
+<p>And add the following dependencies.</p>
+
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.infinispan&lt;/groupId&gt;
+    &lt;artifactId&gt;infinispan-core&lt;/artifactId&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.infinispan&lt;/groupId&gt;
+    &lt;artifactId&gt;infinispan-cdi&lt;/artifactId&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<p><strong>Note:</strong> We use a bom file to manage the versions of the dependencies, if you choose not to use the bom file, just specify the version directly in each dependency instead. </p>
+</li>
+<li>
+<p>Now we need fix the class loading so that we are using the correct JDG library in the container. </p>
+
+<p>JBoss EAP ships with infinispan libraries internally, but since are using JDG 6.3 we must make sure that we use the correct infinispan libraries/modules. One solution is to ship the JDG libraries in the WEB-INF/lib folder but that makes the WAR grow allot in since effecting not only deploymenttime, but we also have to create a new release to patch or update JDG. The other solution is to use the JDG modules new as of JDG 6.3.</p>
+
+<p>The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don't have to ship them as part of the WAR file. For example if we need to patch JDG we don't have to patch the application. We do however need to tell the cointainer (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the <code>MANIFEST.MF</code> file (can be created as part of the maven built) or by using <code>jboss-deployment-structure.xml</code>. We are going to use the later since it works better with Arquillian testing. </p>
+
+<p>Update the file called <code>jboss-deployment-structure.xml</code> under <code>src/main/webapp/WEB-INF</code> to look like this:</p>
+
+<pre><code>&lt;jboss-deployment-structure&gt;
+    &lt;deployment&gt;
+        &lt;dependencies&gt;
+            &lt;module name="org.infinispan" slot="jdg-6.3" services="import"/&gt;
+            &lt;module name="org.infinispan.cdi" slot="jdg-6.3" meta-inf="import"/&gt;
+        &lt;/dependencies&gt;
+    &lt;/deployment&gt;
+&lt;/jboss-deployment-structure&gt;
+</code></pre>
+</li>
+<li>
+<p>Run the build and deploy command again</p>
+
+<pre><code>$ mvn package jboss-as:deploy
+</code></pre>
+</li>
+<li><p>Make sure that the above command are succesfull and you are done with this section.</p></li>
+</ol>
+
+<h3>
+<a id="user-content-inject-a-local-cache-into-taskservice-class-and-implement-the-logic-to-findall-create-update" class="anchor" href="#inject-a-local-cache-into-taskservice-class-and-implement-the-logic-to-findall-create-update" aria-hidden="true"><span class="octicon octicon-link"></span></a>Inject a local Cache into TaskService class and implement the logic to findAll, create, update.</h3>
+
+<ol class="task-list">
+<li>
+<p>Open TaskSevice.java in an editor or IDE and add the following as a field 
+to the class</p>
+
+<pre><code>@Inject
+Cache&lt;Long, Task&gt; cache;
+</code></pre>
+
+<p>you also need to add the follwing import statement if you IDE doesn't fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")</p>
+
+<pre><code>import javax.inject.Inject;
+import org.infinispan.Cache;
+import org.jboss.infinispan.demo.model.Task;
+</code></pre>
+</li>
+<li>
+<p>Change the implementation of the findAll method to look like this:</p>
+
+<pre><code>public Collection&lt;Task&gt; findAll() {
+    return cache.values();
+}
+</code></pre>
+</li>
+<li>
+<p>Change the insert method to look like this:</p>
+
+<pre><code>public void insert(Task task) {
+    if(task.getCreatedOn()==null) {
+        task.setCreatedOn(new Date());
+    }
+    em.persist(task);
+    cache.put(task.getId(),task);
+}
+</code></pre>
+</li>
+<li>
+<p>Change the implementation of the update method to look like this:</p>
+
+<pre><code>public void update(Task task) {
+    em.merge(task);
+    cache.replace(task.getId(),task);
+}
+</code></pre>
+</li>
+<li>
+<p>Change the implementation of the delete method to look like this:</p>
+
+<pre><code>public void delete(Task task) {
+    em.remove(em.getReference(task.getClass(),task.getId()));
+    cache.remove(task.getId());
+}
+</code></pre>
+</li>
+<li>
+<p>We also need fill the cache with the existing values in the database using by updating the startup method to look like this:</p>
+
+<pre><code>@PostConstruct
+public void startup() {
+
+    log.info("### Querying the database for tasks!!!!");
+    final CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+    final CriteriaQuery&lt;Task&gt; criteriaQuery = criteriaBuilder.createQuery(Task.class);
+
+    Root&lt;Task&gt; root = criteriaQuery.from(Task.class);
+    criteriaQuery.select(root);
+    Collection&lt;Task&gt; resultList = em.createQuery(criteriaQuery).getResultList();
+
+    for (Task task : resultList) {
+        this.insert(task);
+    }
+
+}
+</code></pre>
+</li>
+<li>
+<p>Next make sure that the TaskServiceTest class adds the jboss-deployment-structure.xml, which should look like this:</p>
+
+<pre><code>.addAsWebInfResource(new File("src/main/webapp/WEB-INF/jboss-deployment-structure.xml"))
+</code></pre>
+</li>
+<li><p>Run the JUnit test to see that everything works as expected</p></li>
+<li>
+<p>Your TaskService.java implementation should look something like this:</p>
+
+<pre><code>package org.jboss.infinispan.demo;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import org.infinispan.Cache;
+import org.jboss.infinispan.demo.model.Task;
+
+@Stateless
+public class TaskService {
+
+    @PersistenceContext
+    EntityManager em;
+
+    @Inject
+    Cache&lt;Long,Task&gt; cache;
+
+    Logger log = Logger.getLogger(this.getClass().getName());
+
+    /**
+     * This methods should return all cache entries, currently contains mockup code. 
+     * @return
+     */
+    public Collection&lt;Task&gt; findAll() {
+        return cache.values();
+    }
+
+    public void insert(Task task) {
+        if(task.getCreatedOn()==null) {
+            task.setCreatedOn(new Date());
+        }
+        em.persist(task);
+        cache.put(task.getId(),task);
+    }
+
+
+    public void update(Task task) {
+        em.merge(task);
+        cache.replace(task.getId(),task);
+    }
+
+    @PostConstruct
+    public void startup() {
+
+        log.info("### Querying the database for tasks!!!!");
+        final CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        final CriteriaQuery&lt;Task&gt; criteriaQuery = criteriaBuilder.createQuery(Task.class);
+
+        Root&lt;Task&gt; root = criteriaQuery.from(Task.class);
+        criteriaQuery.select(root);
+        Collection&lt;Task&gt; resultList = em.createQuery(criteriaQuery).getResultList();
+
+        for (Task task : resultList) {
+            this.insert(task);
+        }
+
+    }
+
+}
+</code></pre>
+</li>
+<li><p>Hold on with deploy to the application server. There are one issue with the current setup that we will solve in the next</p></li>
+</ol>
+
+<h3>
+<a id="user-content-configure-the-cache-programatically" class="anchor" href="#configure-the-cache-programatically" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configure the cache programatically</h3>
+
+<p>What just happend is that we have implemented a local cache solution where we can offload the database based on the default configuraiton. We haven't yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.</p>
+
+<p>Below is a code snipped that shows how to create configuration objects for the cache.</p>
+
+<pre><code>    GlobalConfiguration glob = new GlobalConfigurationBuilder()
+            .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+            // method enables the jmx statistics of the global
+            // configuration and allows for duplicate JMX domains
+            .build();
+    Configuration loc = new ConfigurationBuilder().jmxStatistics()
+            .enable() // Enable JMX statistics
+            .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+            .build();
+    DefaultCacheManager manager = new DefaultCacheManager(glob, loc, true);
+</code></pre>
+
+<p>There are two main configuration object: <code>GlobalConfiguration</code> for the Global configuration if we use for example multiple clustred configurations and <code>Configuration</code> to hold the local configuration. In this example we allow multiple domains since otherwise we get a nasty exception saying that the cache already exists. In the local configuration we enable JMX statistics (needed for JON for example) and we set the eviction.strategy to NONE, meaning that no objects are evicted. </p>
+
+<p>We can then create a cache manager object using these configuration and pass it true to also start it.</p>
+
+<p>Since we are using CDI in our example we can actually override the cache manager that is used when someone injects a cache with <code>@Inject Cache&lt;?,?&gt; cache;</code> like we do in TaskService class. This can be done using something called Producer in CDI. So all we have to do is create a method that looks like this:</p>
+
+<pre><code>    @Produces
+    @ApplicationScoped
+    @Default
+    public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() { ... }
+</code></pre>
+
+<p>Then we put this class somewhere in our classpath (or even better in our source) and add the configuration code from above in it. </p>
+
+<ol class="task-list">
+<li>
+<p>Update the Config class in package org.jboss.infinispan.demo to look like this:</p>
+
+<pre><code>package org.jboss.infinispan.demo;
+
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Default;
+import javax.enterprise.inject.Produces;
+
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.global.GlobalConfiguration;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
+import org.infinispan.eviction.EvictionStrategy;
+import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
+
+public class Config {
+
+    private EmbeddedCacheManager manager;
+
+    @Produces
+    @ApplicationScoped
+    @Default
+    public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
+        if (manager == null) {
+            GlobalConfiguration glob = new GlobalConfigurationBuilder()
+                    .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+                    // method enables the jmx statistics of the global
+                    // configuration and allows for duplicate JMX domains
+                    .build();
+            Configuration loc = new ConfigurationBuilder().jmxStatistics()
+                    .enable() // Enable JMX statistics
+                    .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+                    .build();
+            manager = new DefaultCacheManager(glob, loc, true);
+        }
+        return manager;
+    }
+
+    @PreDestroy
+    public void cleanUp() {
+        manager.stop();
+        manager = null;
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>Soon we are ready to deploy the application, but first we need to make sure that test passes. Before we run the test, lets check that TaskServiceTest.java add the Config class to the test, like this:</p>
+
+<pre><code>.addClass(Config.class)
+</code></pre>
+</li>
+<li>
+<p>If everything is green we are ready to deploy the application with the following command in a terminal</p>
+
+<pre><code>$ mvn package jboss-as:deploy
+</code></pre>
+</li>
+<li><p>Test the application by opening a browser window to <a href="http://localhost:8080/mytodo">http://localhost:8080/mytodo</a></p></li>
+<li><p>Congratulations you are done with lab1. </p></li>
+</ol>
+</article>
+  </div>
+
+  </div>
+</div>
+  </body>
+</html>
+
