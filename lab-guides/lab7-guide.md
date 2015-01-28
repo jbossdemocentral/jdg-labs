@@ -43,6 +43,10 @@ We will implement a solution to store user information. To minimize any impact t
 		
 1. Open `BIService.java` and do the following changes
 
+	Inject the request cache like this:
+		
+		@Inject private Cache<Long, String> requestCache;
+
 	Change the implementation of `getRequestStatiscsPerOs()` method. 
 	
 		public Map<String,Integer> getRequestStatiscsPerOs() {
