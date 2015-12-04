@@ -1,29 +1,18 @@
-#!/bin/bash 
+#!/bin/bash
 DEMO="JDG Workshop Labs - Server environment"
 AUTHORS="Thomas Qvarnstrom, Red Hat, @tqvarnst"
-JBOSS_HOME=./target/jboss-eap-6.3
-JDG_HOME=./target/jboss-datagrid-6.3.0-server
-JDG_ONE_HOME=./target/jboss-datagrid-6.3.0-server-one
-JDG_TWO_HOME=./target/jboss-datagrid-6.3.0-server-two
-SERVER_DIR=$JBOSS_HOME/standalone/deployments/
-SERVER_CONF=$JBOSS_HOME/standalone/configuration/
-SRC_DIR=./installs
-EAP_SERVER=jboss-eap-6.3.0.zip
-EAP_SERVER_MD5SUM=
-JDG_SERVER=jboss-datagrid-6.3.0-server.zip
-JDG_LIBRARY_MODUELS=jboss-datagrid-6.3.0-eap-modules-library.zip
-HOTROD_MODULES=jboss-datagrid-6.3.0-eap-modules-hotrod-java-client.zip
 
+. $(dirname $0)/support/versions.sh
 
 function print_header() {
 	# wipe screen.
-	clear 
+	clear
 	echo
 
 	ASCII_WIDTH=56
 
 	printf "##  %-${ASCII_WIDTH}s  ##\n" | sed -e 's/ /#/g'
-	printf "##  %-${ASCII_WIDTH}s  ##\n"   
+	printf "##  %-${ASCII_WIDTH}s  ##\n"
 	printf "##  %-${ASCII_WIDTH}s  ##\n" "Setting up the ${DEMO}"
 	printf "##  %-${ASCII_WIDTH}s  ##\n"
 	printf "##  %-${ASCII_WIDTH}s  ##\n"
@@ -31,10 +20,10 @@ function print_header() {
 	printf "##  %-${ASCII_WIDTH}s  ##\n" "    # #   # #   # #    #      #  # #"
 	printf "##  %-${ASCII_WIDTH}s  ##\n" "    # ####  #   #  ##   ##    #  # #  ##"
 	printf "##  %-${ASCII_WIDTH}s  ##\n" "#   # #   # #   #    #    #   #  # #   #"
-	printf "##  %-${ASCII_WIDTH}s  ##\n" " ###  ####   ###  ###  ###    ###   ###"  
+	printf "##  %-${ASCII_WIDTH}s  ##\n" " ###  ####   ###  ###  ###    ###   ###"
 	printf "##  %-${ASCII_WIDTH}s  ##\n"
 	printf "##  %-${ASCII_WIDTH}s  ##\n"
-	printf "##  %-${ASCII_WIDTH}s  ##\n"   
+	printf "##  %-${ASCII_WIDTH}s  ##\n"
 	printf "##  %-${ASCII_WIDTH}s  ##\n" "brought to you by,"
 	printf "##  %-${ASCII_WIDTH}s  ##\n" "  ${AUTHORS}"
 	printf "##  %-${ASCII_WIDTH}s  ##\n"
@@ -45,22 +34,22 @@ function print_header() {
 
 function print_usage() {
 	echo "This a init script for setting up $DEMO"
-	echo "usage: $0 [--lab[=]<value>]" >&2	
+	echo "usage: $0 [--lab[=]<value>]" >&2
 	echo "    --lab=<value> is the lab number to initialize for"
 }
 
 function setup_eap_with_modules() {
-	# make some checks first before proceeding.	
+	# make some checks first before proceeding.
 	DOWNLOADS=($EAP_SERVER $JDG_LIBRARY_MODUELS $HOTROD_MODULES)
-	
-	
+
+
 	for DONWLOAD in ${DOWNLOADS[@]}
 	do
 		if [[ -r $SRC_DIR/$DONWLOAD || -L $SRC_DIR/$DONWLOAD ]]; then
 				echo $DONWLOAD are present...
 				echo
 		else
-				echo You need to download $DONWLOAD from the Customer Support Portal 
+				echo You need to download $DONWLOAD from the Customer Support Portal
 				echo and place it in the $SRC_DIR directory to proceed...
 				echo
 				exit
@@ -83,7 +72,7 @@ function setup_eap_with_modules() {
 
 	echo Unpacking new JBoss Enterprise EAP 6...
 	echo
-		
+
 	unzip -q -o -d ${EXTRACT_DIR} $SRC_DIR/$EAP_SERVER
 
 	# Creating and admin user with admin-123 as password
@@ -95,31 +84,31 @@ function setup_eap_with_modules() {
 	echo "Adding JBoss Data Grid Modules to EAP"
 	tmpdir=`mktemp -d XXXXXXXX`
 	unzip -q -d ${tmpdir} ${SRC_DIR}/${JDG_LIBRARY_MODUELS}
-	cp -R ${tmpdir}/jboss-datagrid-6.3.0-eap-modules-library/modules/* $JBOSS_HOME/modules/
-	rm -rf  ${tmpdir} 
+	cp -R ${tmpdir}/jboss-datagrid-${JDG_VERSION}-eap-modules-library/modules/* $JBOSS_HOME/modules/
+	rm -rf  ${tmpdir}
 
 	# Adding Hotrod modules to EAP
 	#echo "Adding Hotrod Modules to EAP"
 	#tmpdir=`mktemp -d XXXXXXXX`
 	#unzip -q -d ${tmpdir} ${SRC_DIR}/${HOTROD_MODULES}
 	#cp -R ${tmpdir}/jboss-datagrid-6.3.0-eap-modules-hotrod-java-client/modules/* $JBOSS_HOME/modules/
-	#rm -rf  ${tmpdir}  
-	
-	echo "Done setting up EAP with modules"	
+	#rm -rf  ${tmpdir}
+
+	echo "Done setting up EAP with modules"
 }
 
 function setup_eap_node_with_modules() {
 	NODE_NAME=$1
 
 	ORG_JBOSS_HOME=$JBOSS_HOME
-	
-	JBOSS_HOME=./target/${NODE_NAME}/jboss-eap-6.3
-	
+
+	JBOSS_HOME=./target/${NODE_NAME}/jboss-eap-${EAP_MAYOR_VERSION}.${EAP_MINOR_VERRION}
+
 	setup_eap_with_modules
-	
+
 	# Reset JBOSS_HOME to it's original value
 	JBOSS_HOME=$ORG_JBOSS_HOME
-		
+
 }
 
 
@@ -132,7 +121,7 @@ function setup_jdg_server() {
 				echo $DONWLOAD are present...
 				echo
 		else
-				echo You need to download $DONWLOAD from the Customer Support Portal 
+				echo You need to download $DONWLOAD from the Customer Support Portal
 				echo and place it in the $SRC_DIR directory to proceed...
 				echo
 				exit
@@ -149,7 +138,7 @@ function setup_jdg_server() {
 	fi
 	# Unzip the JBoss DG instance.
 	echo Unpacking new JBoss Data Grid instance...
-	
+
 	echo
 	unzip -q -o -d target ${SRC_DIR}/${JDG_SERVER}
 	echo "Done setting up JDG Server Node One"
@@ -211,7 +200,7 @@ echo
 echo "Setting up the ${DEMO} environment for Lab ${LAB_TO_SETUP}"
 echo
 
-case "${LAB_TO_SETUP}" in 
+case "${LAB_TO_SETUP}" in
 	1|2|3)
 		setup_eap_with_modules
 		;;
@@ -227,5 +216,3 @@ case "${LAB_TO_SETUP}" in
 		echo "Unsupported lab"
 		;;
 esac
-
-
