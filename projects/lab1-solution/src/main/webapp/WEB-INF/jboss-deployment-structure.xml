@@ -1,9 +1,13 @@
 <jboss-deployment-structure>
     <deployment>
-    	<!-- DONE: Add dependencies to JDG Modules  -->
+        <exclusions>
+        	<module name="org.infinispan" />
+        </exclusions>
         <dependencies>
-            <module name="org.infinispan" slot="jdg-6.3" services="import"/>
-            <module name="org.infinispan.cdi" slot="jdg-6.3" meta-inf="import"/>
+        	<module name="org.hibernate" />
+        	<!-- DONE: Add dependencies to JDG Modules  -->
+        	<module name="org.infinispan" slot="jdg-6.5" services="import"/>
+            <module name="org.infinispan.cdi" slot="jdg-6.5" meta-inf="import"/>
         </dependencies>
     </deployment>
 </jboss-deployment-structure>
