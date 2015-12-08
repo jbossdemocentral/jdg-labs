@@ -52,7 +52,7 @@ To assist with setting up the lab environment we have provided a shell script th
 1. Start the JBoss EAP if not already started in a terminal.
 +
 [source,bash,indent=0]
-    $ target/jboss-eap-6.3/bin/standalone.sh
+    $ target/jboss-eap-6.4/bin/standalone.sh
 
 1. In another terminal (on the dev host) change directory to the project
 +
@@ -84,45 +84,50 @@ The Mock application is simple todo application that uses a database to store ta
 === Add dependencies to the maven project
 In this step-by-step section we will add dependecies to the maven project so that we can later on add the code to store tasks in JDG.
 
-1. Open the maven pom.xml file in project/todo in an editor or IDE and add the following in the dependencyManagement section
+1. Open the maven pom.xml file in `projects/parent` in an editor or IDE and verify the following in the `dependencyManagement` section
 +
 [source,xml,indent=0]
 ----
     <dependencyManagement>
         ...
         ...
-        ...
         <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-bom</artifactId>
-            <version>6.1.0.Final-redhat-4</version>
-            <type>pom</type>
-            <scope>import</scope>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-bom</artifactId>
+                <version>${version.infinispan.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
         </dependency>
     </dependencyManagement>
 ----
-And add the following dependencies.
+The `version.infinispan.bom` property should be set to `6.3.1.Final-redhat-1`.
+
+1. Add the following dependencies.
 +
 [source,xml,indent=0]
 ----
-    <dependency>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-core</artifactId>
-        <scope>provided</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-cdi</artifactId>
-        <scope>provided</scope>
-    </dependency>
+    <dependencies>
+        ...
+        ...
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-cdi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 ----
 NOTE: We use a bom file to manage the versions of the dependencies, if you choose not to use the bom file, just specify the version directly in each dependency instead.
 
 2. Now we need fix the class loading so that we are using the correct JDG library in the container.
 +
-JBoss EAP ships with infinispan libraries internally, but since are using JDG 6.3 we must make sure that we use the correct infinispan libraries/modules. One solution is to ship the JDG libraries in the WEB-INF/lib folder but that makes the WAR grow allot in since effecting not only deploymenttime, but we also have to create a new release to patch or update JDG. The other solution is to use the JDG modules new as of JDG 6.3.
+JBoss EAP ships with infinispan libraries internally, but since are using JDG 6.5 we must make sure that we use the correct infinispan libraries/modules. One solution is to ship the JDG libraries in the WEB-INF/lib folder but that makes the WAR grow significantly.  This not only effects deployment time, but also requires that we create a new release to patch or update JDG. A better solution is to use the JDG modules new as of JDG 6.3.
 +
-The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don't have to ship them as part of the WAR file. For example if we need to patch JDG we don't have to patch the application. We do however need to tell the cointainer (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the `MANIFEST.MF` file (can be created as part of the maven built) or by using `jboss-deployment-structure.xml`. We are going to use the later since it works better with Arquillian testing.
+The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don't have to ship them as part of the WAR file. Because we are using JBoss modules, if we need to patch JDG we don't have to patch the application. We do however need to tell the cointainer (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the `MANIFEST.MF` file (can be created as part of the maven built) or by using `jboss-deployment-structure.xml`. We are going to use the later since it works better with Arquillian testing.
 +
 Update the file called `jboss-deployment-structure.xml` under `src/main/webapp/WEB-INF` to look like this:
 +
@@ -131,8 +136,11 @@ Update the file called `jboss-deployment-structure.xml` under `src/main/webapp/W
     <jboss-deployment-structure>
         <deployment>
             <dependencies>
-                <module name="org.infinispan" slot="jdg-6.3" services="import"/>
-                <module name="org.infinispan.cdi" slot="jdg-6.3" meta-inf="import"/>
+                <module name="org.infinispan" slot="jdg-6.5"/>
+                <module name="org.infinispan.cdi" slot="jdg-6.5" meta-inf="import"/>
+                <module name="org.jgroups" slot="jdg-6.5"/>
+                <module name="org.infinispan.persistence.jpa" slot="jdg-6.5" services="export"/>
+                <module name="org.hibernate"/>
             </dependencies>
         </deployment>
     </jboss-deployment-structure>
@@ -156,7 +164,7 @@ to the class
     Cache<Long, Task> cache;
 ----
 +
-You also need to add the follwing import statement if you IDE doesn't fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")
+You also need to add the following import statement if you IDE doesn't fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")
 +
 [source,java,indent=0]
 ----
@@ -230,7 +238,6 @@ You also need to add the follwing import statement if you IDE doesn't fix that (
 ----
         .addAsWebInfResource(new File("src/main/webapp/WEB-INF/jboss-deployment-structure.xml"))
 ----
-1. Run the JUnit test to see that everything works as expected
 
 1. Your TaskService.java implementation should look something like this:
 +
@@ -305,7 +312,7 @@ You also need to add the follwing import statement if you IDE doesn't fix that (
 
     }
 ----
-1. Hold on with deploy to the application server. There are one issue with the current setup that we will solve in the next
+1. Hold on with deploy to the application server. There are one issue with the current setup that we will solve next.
 
 === Configure the cache programatically
 What just happend is that we have implemented a local cache solution where we can offload the database based on the default configuraiton. We haven't yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.
@@ -326,11 +333,17 @@ Below is a code snipped that shows how to create configuration objects for the c
     DefaultCacheManager manager = new DefaultCacheManager(glob, loc, true);
 ----
 
-There are two main configuration object: `GlobalConfiguration` for the Global configuration if we use for example multiple clustred configurations and `Configuration` to hold the local configuration. In this example we allow multiple domains since otherwise we get a nasty exception saying that the cache already exists. In the local configuration we enable JMX statistics (needed for JON for example) and we set the eviction.strategy to NONE, meaning that no objects are evicted.
+There are two main configuration objects: 
+
+* `GlobalConfiguration` is used for the global configuration attributes that are applied to all caches created from this 
+cache container. For example, the network transport and security are both configured in GlobalConfiguration. 
+* `Configuration` to hold the local configuration. In this example we allow multiple domains since otherwise we get a nasty exception saying that the cache already exists. In the local configuration we enable JMX statistics (needed for JON for example) and we set the eviction strategy to NONE, meaning that no objects are evicted.
 
 We can then create a cache manager object using these configuration and pass it true to also start it.
 
-Since we are using CDI in our example we can actually override the cache manager that is used when someone injects a cache with `@Inject Cache<?,?> cache;` like we do in TaskService class. This can be done using something called Producer in CDI. So all we have to do is create a method that looks like this:
+Since we are using CDI in our example we can actually override the cache manager that is used when someone injects a cache with 
+`@Inject Cache<?,?> cache;` like we do in the TaskService class. This can be done using something called Producer in CDI. 
+So all we have to do is create a method that looks like this:
 
 [source,java,indent=0]
 ----
@@ -347,7 +360,6 @@ Then we put this class somewhere in our classpath (or even better in our source)
 ----
     package org.jboss.infinispan.demo;
 
-    import javax.annotation.PreDestroy;
     import javax.enterprise.context.ApplicationScoped;
     import javax.enterprise.inject.Default;
     import javax.enterprise.inject.Produces;
@@ -362,41 +374,32 @@ Then we put this class somewhere in our classpath (or even better in our source)
 
     public class Config {
 
-        private EmbeddedCacheManager manager;
-
         @Produces
         @ApplicationScoped
         @Default
         public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
-            if (manager == null) {
-                GlobalConfiguration glob = new GlobalConfigurationBuilder()
-                        .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
-                        // method enables the jmx statistics of the global
-                        // configuration and allows for duplicate JMX domains
-                        .build();
-                Configuration loc = new ConfigurationBuilder().jmxStatistics()
-                        .enable() // Enable JMX statistics
-                        .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
-                        .build();
-                manager = new DefaultCacheManager(glob, loc, true);
-            }
-            return manager;
+            GlobalConfiguration glob = new GlobalConfigurationBuilder()
+                    .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+                    // method enables the jmx statistics of the global
+                    // configuration and allows for duplicate JMX domains
+                    .build();
+            Configuration loc = new ConfigurationBuilder().jmxStatistics()
+                    .enable() // Enable JMX statistics
+                    .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+                    .build();
+            return new DefaultCacheManager(glob, loc, true);
         }
 
-        @PreDestroy
-        public void cleanUp() {
-            manager.stop();
-            manager = null;
-        }
     }
 ----
 
-1. Soon we are ready to deploy the application, but first we need to make sure that test passes. Before we run the test, lets check that TaskServiceTest.java add the Config class to the test, like this:
+1. We are nearly ready to deploy the application, but first we need to make sure that test passes. Before we run the test, lets check that TaskServiceTest.java add the Config class to the test, like this:
 +
 [source,java,indent=0]
 ----
         .addClass(Config.class)
 ----
+1. Execute the test and verify that the performance test that was failing is now passing.
 1. If everything is green we are ready to deploy the application with the following command in a terminal
 +
 [source,bash,indent=0]

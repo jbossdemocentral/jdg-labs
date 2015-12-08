@@ -6,12 +6,12 @@ import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.infinispan.Cache;
 import org.jboss.infinispan.demo.model.Task;
@@ -22,39 +22,35 @@ import org.jboss.infinispan.demo.model.Task;
  *
  */
 @Stateless
-@TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class TaskService {
 
 	@PersistenceContext
     EntityManager em;
 	
-	@Inject
-	Cache<Long,Task> cache;
-	
-	Logger log = Logger.getLogger(this.getClass().getName());
+	@Inject Cache<Long,Task> cache;
 
+	Logger log = Logger.getLogger(this.getClass().getName());
+	
 	/**
-	 * This methods should return all cache entries, currently contains mockup code. 
+	 * This methods return all cache entries 
 	 * @return
 	 * 
-	 * DONE: Replace implementation with Cache.values()
 	 */
 	public Collection<Task> findAll() {
-		return cache.values();
+        return cache.values();
 	}
 
 	/**
 	 * This method persists a new Task instance
 	 * @param task
 	 * 
-	 * DONE: Add implementation to also update the Cache with the new object
 	 */
 	public void insert(Task task) {
 		if(task.getCreatedOn()==null) {
-			task.setCreatedOn(new Date());
-		}
-		em.persist(task);
-		cache.put(task.getId(),task);
+	        task.setCreatedOn(new Date());
+	    }
+	    em.persist(task);
+	    cache.put(task.getId(),task);
 	}
 
 
@@ -62,47 +58,43 @@ public class TaskService {
 	 * This method persists an existing Task instance
 	 * @param task
 	 * 
-	 * DONE: Add implementation to also update the Object in the Cache
 	 */
 	public void update(Task task) {
-		Task newTask = em.merge(task);
-		em.detach(newTask);
-		cache.replace(task.getId(),newTask);
+		em.merge(task);
+	    cache.replace(task.getId(),task);
 	}
 	
 	/**
-	 * This method deletes an Task from the persistence store
+	 * This method deletes an Task from the persitance store
 	 * @param task
 	 * 
-	 * DONE: Add implementation to also delete the object from the Cache
+	 * FIXME: Add implementation to also delete the object from the Cache
 	 */
 	public void delete(Task task) {
 		//Note object may be detached so we need to tell it to remove based on reference
 		em.remove(em.getReference(task.getClass(),task.getId()));
-		cache.remove(task.getId());
+	    cache.remove(task.getId());
 	}
 	
 	
 	/**
 	 * This method is called after construction of this SLSB.
 	 * 
-	 * DONE: Replace implementation to read existing Tasks from the database and add them to the cache
+	 * FIXME: Replace implementation to read existing Tasks from the database and add them to the cache
 	 */
 	@PostConstruct
 	public void startup() {
-		
 		log.info("### Querying the database for tasks!!!!");
-		final CriteriaQuery<Task> criteriaQuery = em.getCriteriaBuilder().createQuery(Task.class);
-		Collection<Task> resultList = em.createQuery(
-				criteriaQuery.select(
-						criteriaQuery.from(Task.class)
-						)
-				).getResultList();
-		
-		for (Task task : resultList) {
-			this.insert(task);
-		}
-		
+        final CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        final CriteriaQuery<Task> criteriaQuery = criteriaBuilder.createQuery(Task.class);
+
+        Root<Task> root = criteriaQuery.from(Task.class);
+        criteriaQuery.select(root);
+        Collection<Task> resultList = em.createQuery(criteriaQuery).getResultList();
+
+        for (Task task : resultList) {
+            this.insert(task);
+        }
 	}
-	
+
 }
