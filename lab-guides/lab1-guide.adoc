@@ -18,7 +18,7 @@ Acme Inc has released a new cloud service application to manage tasks lists call
 
 The main challenge for Acme right now is that the round trip to a database is to expensive for the smart apps and the responsive UI interface.
 
-During a meeting with the local Red Hat Sales team, the JBoss SA suggested that Acme should use JDG to avoid the expensive round trip. Initally the JBoss SA recommends that Acme implements JDG as a side cache with minimal changes to the application.
+During a meeting with the local Red Hat Sales team, the JBoss SA suggested that Acme should use JDG to avoid the expensive round trip. Initially the JBoss SA recommends that Acme implements JDG as a side cache with minimal changes to the application.
 
 == Goals
 Increase read performance 10 times by implementing JDG as side cache to the database without changing the UI, REST service or data model object.
@@ -82,7 +82,7 @@ The Mock application is simple todo application that uses a database to store ta
 
 
 === Add dependencies to the maven project
-In this step-by-step section we will add dependecies to the maven project so that we can later on add the code to store tasks in JDG.
+In this step-by-step section we will add dependencies to the maven project so that we can later on add the code to store tasks in JDG.
 
 1. Open the maven pom.xml file in `projects/parent` in an editor or IDE and verify the following in the `dependencyManagement` section
 +
@@ -127,7 +127,7 @@ NOTE: We use a bom file to manage the versions of the dependencies, if you choos
 +
 JBoss EAP ships with infinispan libraries internally, but since are using JDG 6.5 we must make sure that we use the correct infinispan libraries/modules. One solution is to ship the JDG libraries in the WEB-INF/lib folder but that makes the WAR grow significantly.  This not only effects deployment time, but also requires that we create a new release to patch or update JDG. A better solution is to use the JDG modules new as of JDG 6.3.
 +
-The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don't have to ship them as part of the WAR file. Because we are using JBoss modules, if we need to patch JDG we don't have to patch the application. We do however need to tell the cointainer (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the `MANIFEST.MF` file (can be created as part of the maven built) or by using `jboss-deployment-structure.xml`. We are going to use the later since it works better with Arquillian testing.
+The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don't have to ship them as part of the WAR file. Because we are using JBoss modules, if we need to patch JDG we don't have to patch the application. We do however need to tell the container (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the `MANIFEST.MF` file (can be created as part of the maven built) or by using `jboss-deployment-structure.xml`. We are going to use the later since it works better with Arquillian testing.
 +
 Update the file called `jboss-deployment-structure.xml` under `src/main/webapp/WEB-INF` to look like this:
 +
@@ -151,7 +151,7 @@ Update the file called `jboss-deployment-structure.xml` under `src/main/webapp/W
 [source,bash,indent=0]
     $ mvn package jboss-as:deploy
 
-1. Make sure that the above command are succesfull and you are done with this section.
+1. Make sure that the above command are successful and you are done with this section.
 
 === Inject a local Cache into TaskService class and implement the logic to findAll, create, update.
 
@@ -164,7 +164,7 @@ to the class
     Cache<Long, Task> cache;
 ----
 +
-You also need to add the following import statement if you IDE doesn't fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")
+You also need to add the following import statement if you IDE does not fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")
 +
 [source,java,indent=0]
 ----
@@ -314,8 +314,8 @@ You also need to add the following import statement if you IDE doesn't fix that 
 ----
 1. Hold on with deploy to the application server. There are one issue with the current setup that we will solve next.
 
-=== Configure the cache programatically
-What just happend is that we have implemented a local cache solution where we can offload the database based on the default configuraiton. We haven't yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.
+=== Configure the cache programmatically
+What just happened is that we have implemented a local cache solution where we can offload the database based on the default configuration. We haven't yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.
 
 Below is a code snipped that shows how to create configuration objects for the cache.
 
