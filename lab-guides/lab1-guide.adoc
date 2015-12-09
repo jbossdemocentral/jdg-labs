@@ -83,26 +83,9 @@ The Mock application is simple todo application that uses a database to store ta
 
 === Add dependencies to the maven project
 In this step-by-step section we will add dependencies to the maven project so that we can later on add the code to store tasks in JDG.
+Adding JDG to a project is made simple the the use of uber-jars, so that only a single dependency is required.
 
-1. Open the maven pom.xml file in `projects/parent` in an editor or IDE and verify the following in the `dependencyManagement` section
-+
-[source,xml,indent=0]
-----
-    <dependencyManagement>
-        ...
-        ...
-        <dependency>
-                <groupId>org.infinispan</groupId>
-                <artifactId>infinispan-bom</artifactId>
-                <version>${version.infinispan.bom}</version>
-                <type>pom</type>
-                <scope>import</scope>
-        </dependency>
-    </dependencyManagement>
-----
-The `version.infinispan.bom` property should be set to `6.3.1.Final-redhat-1`.
-
-1. Add the following dependencies.
+1. Open the maven pom.xml file in an editor or IDE and add the following dependency:
 +
 [source,xml,indent=0]
 ----
@@ -111,17 +94,12 @@ The `version.infinispan.bom` property should be set to `6.3.1.Final-redhat-1`.
         ...
         <dependency>
             <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-cdi</artifactId>
+            <artifactId>infinispan-embedded</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 ----
-NOTE: We use a bom file to manage the versions of the dependencies, if you choose not to use the bom file, just specify the version directly in each dependency instead.
+NOTE: We use a bom reference in the `parent/pom.xml` file to manage the versions of the dependencies, if you choose not to use the bom file, just specify the version directly in each dependency instead.
 
 2. Now we need fix the class loading so that we are using the correct JDG library in the container.
 +

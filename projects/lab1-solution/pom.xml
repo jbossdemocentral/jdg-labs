@@ -9,7 +9,7 @@
 		<version>1.0.0</version>
 		<relativePath>../parent</relativePath>
 	</parent>
-	<artifactId>lab1</artifactId>
+	<artifactId>lab1-solution</artifactId>
 	<packaging>war</packaging>
 
 	<dependencies>
@@ -18,6 +18,11 @@
 			<artifactId>hibernate-jpa-2.0-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-embedded</artifactId>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
 
 
