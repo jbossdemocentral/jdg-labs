@@ -1,6 +1,6 @@
 :source-highlighter: coderay
-:toc: right
-:numbered:
+:toc: manual
+:toc-placement: preamble
 
 JBoss Data Grid lab guides: Lab 1
 ==================================
@@ -12,6 +12,7 @@ This guide explains the steps running for lab 1, either follow the steps in the 
 NOTE: If you are looking at the PDF version and have problems with for example copying text, the original Asciidoc version is available
 http://bit.ly/Ybh0Hn[here].
 
+:numbered:
 
 == Background
 Acme Inc has released a new cloud service application to manage tasks lists called `todo`. The application is implemented using HTML5 and AngularJS (don't worry, you don't have to know AngularJS to complete the labs) for the client side.  The server side uses CDI and REST on JBoss EAP to expose CRUD services on top of a database. There are also Android and iPhone apps for `todo` that are using the same REST services.
