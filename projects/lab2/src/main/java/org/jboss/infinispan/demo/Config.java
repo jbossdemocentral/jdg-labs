@@ -1,8 +1,6 @@
 package org.jboss.infinispan.demo;
 
-import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 
 import org.infinispan.configuration.cache.Configuration;
@@ -24,31 +22,21 @@ import org.infinispan.transaction.TransactionMode;
  */
 public class Config {
 
-	private EmbeddedCacheManager manager;
 
-	@Produces
-	@ApplicationScoped
-	@Default
-	public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
-		if (manager == null) {
-			GlobalConfiguration glob = new GlobalConfigurationBuilder()
-					.globalJmxStatistics().allowDuplicateDomains(true).enable() // This
-					// method enables the jmx statistics of the global
-					// configuration and allows for duplicate JMX domains
-					.build();
-			Configuration loc = new ConfigurationBuilder().jmxStatistics()
-					.enable() // Enable JMX statistics
-					.eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
-					.transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
-					.build();
-			manager = new DefaultCacheManager(glob, loc, true);
-		}
-		return manager;
-	}
+    @Produces
+    @ApplicationScoped
+    public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
+        GlobalConfiguration glob = new GlobalConfigurationBuilder()
+                .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+                // method enables the jmx statistics of the global
+                // configuration and allows for duplicate JMX domains
+                .build();
+        Configuration loc = new ConfigurationBuilder().jmxStatistics()
+                .enable() // Enable JMX statistics
+                .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+                .transaction().transactionMode(TransactionMode.TRANSACTIONAL).lockingMode(LockingMode.OPTIMISTIC)
+                .build();
+        return new DefaultCacheManager(glob, loc, true);
+    }
 
-	@PreDestroy
-	public void cleanUp() {
-		manager.stop();
-		manager = null;
-	}
 }

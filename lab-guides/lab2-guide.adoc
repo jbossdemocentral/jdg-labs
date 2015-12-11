@@ -1,26 +1,36 @@
 :source-highlighter: coderay
-:toc: right
-:numbered:
+:toc: manual
+:toc-placement: preamble
+:infinispanQueryGuide: http://red.ht/1nSniBo[See the Infinispan Query Guide]
 
 JBoss Data Grid lab guides: Lab 2
 ==================================
 Thomas Qvarnström <tqvarnst@redhat.com>
 v1.1 2015-12-06
 
-This guide explains the steps for running lab 2, either follow the steps in the step-by-step section or if you feel adventurous try to accomplish goals without the step-by-step guide.
+This guide explains the steps for running lab 2.  Either follow the steps in the step-by-step section or if you feel adventurous try to accomplish goals without the step-by-step guide.
+
+:numbered:
 
 == Background
-In lab 1 we implemented a side cache using JDG to speed up reads, but master data store is still the database. So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. Since JDG primary are a key/value store these operations are easy to implement.
+In lab 1 we implemented a side cache using JDG to speed up reads, but the master data store is still the database. 
+So far however the data access is only a using the common CRUD (Create, Read, Update and Delete) operations. 
+Since JDG primary are a key/value store these operations are easy to implement.
 
-A competing vendor that has a similar task management solution released a new feature where users can filter their tasks. Something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. An external consultant are hired and to implement this feature, but since he wasn't familiar with JDG he implemented the filter solution using JPA query. This is however not responsive enough and we refactor the filter function to query JDG instead.
+A competing vendor that has a similar task management solution released a new feature where users can filter their tasks, 
+something our customers has been requesting for a while. Our marketing director demands that we ASAP add this feature. 
+An external consultant was  hired to implement this feature, but since he wasn't familiar with JDG he implemented the 
+filter solution using JPA query. However, this is not responsive enough and we need to refactor the filter function to query JDG instead.
 
-JDG has very advanced querying capabilities in library mode (client/server quering is tech preview for JDG 6.3)
+JDG has very advanced querying capabilities available in both library mode and client/server mode.
 
 == Use-case
-You are tasked to rewrite the filter implementation using queries in JDG instead of JPA queries. However the Task data model is used in the native mobile application and since it will take a while before we can update the mobile application you are not allowed to change the org.jboss.infinspan.demo.model.Task class.
+You are tasked to rewrite the filter implementation using queries in JDG instead of JPA queries. However, the Task data model is used in 
+the native mobile application.  Since it will take a while before we can update the mobile application you are not allowed to change 
+the org.jboss.infinspan.demo.model.Task class.
 
 == Objectives
-Your task in lab 2 re-implement the filtering method, but using JDG Queries.
+Your task in lab 2 is to re-implement the filtering method, but using JDG Queries.
 The UI and REST methods are already implemented.
 
 Basically you should replace the DB Query with a JDG Query and you will have to
@@ -34,7 +44,7 @@ To do this we need to do the following:
 2. Add runtime dependencies
     Update jboss-deployment-structure.xml to add runtime dependency to infinispan-query
 3. Update configuration
-    Enable indexing in the API Configuration. Hint http://red.ht/1nSniBo[See the Infinispan Query Guide]
+    Enable indexing in the API Configuration. Hint {infinispanQueryGuide} 
       - The index should only be persisted in RAM
       - Since we will later deploy this on mulitple EAP instances we need to allow for shared indexes.
       - The index should be based on the `title` field from `org.jboss.infinspan.demo.model.Task`
@@ -56,20 +66,35 @@ $ sh init-lab.sh --lab=2
 === Add developer dependencies
 
 1. Open the lab2 pom.xml (see below)
-2. Select the dependencies tab
+1. Select the `pom.xml` tab
+1. Add the `infinispan-embeddded-query` dependency. The content of the file should look like this:
 +
-image::images/lab2-image1.png[Image 1]
+[source,xml,indent=0]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.redhat.jdg.workshop</groupId>
+        <artifactId>lab-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../parent</relativePath>
+    </parent>
+    <artifactId>lab2</artifactId>
+    <packaging>war</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-embedded-query</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>
+----
 
-3. Click `Add...` button
-4. Type `infinispan-query` in the search field and select the managed version that should appear.
-+
-image::images/lab2-image2.png[Image 2]
-
-5. Change **Scope** to `provided` and Click **OK**
-6. Select the newly added dependency and click **Properties...**
-7. Verify the Type value is Jar. If it's bundle instead switch it to jar or delete bundle.
-+
-image::images/lab2-image3.png[Image 3]
+1. Save the pom.xml file.
 
 === Add runtime dependencies
 
@@ -80,10 +105,14 @@ image::images/lab2-image3.png[Image 3]
 ----
 <jboss-deployment-structure>
     <deployment>
+        <exclusions>
+            <module name="org.infinispan" />
+        </exclusions>
         <dependencies>
-            <module name="org.infinispan" slot="jdg-6.3" services="import"/>
-            <module name="org.infinispan.cdi" slot="jdg-6.3" meta-inf="import"/>
-            <module name="org.infinispan.query" slot="jdg-6.3" services="import"/>
+            <module name="org.hibernate" />
+            <module name="org.infinispan" slot="jdg-6.5" services="import"/>
+            <module name="org.infinispan.cdi" slot="jdg-6.5" meta-inf="import"/>
+            <module name="org.infinispan.query" slot="jdg-6.5" services="import"/>
         </dependencies>
     </deployment>
 </jboss-deployment-structure>
@@ -114,7 +143,7 @@ properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
 ----
 properties.put("default.directory_provider", "ram");
 ----
-1. Now we can enable the index on the configuration object by adding `.indexing().enable()` to the fluid API before `.build()`.
+1. Now we can enable the index on the `Configuration` object by adding `.indexing().enable()` to the fluid API before `.build()`.
 1. Also we want to configure the index to support clustering adding `.indexLocalOnly(false)` to the fluid API before `.build()`.
 1. And finally we want to pass in the properties configuration by adding `.withProperties(properties)` to the fluid API before `.build()`. The config class should now look like this:
 +
@@ -124,12 +153,8 @@ package org.jboss.infinispan.demo;
 
 import java.lang.annotation.ElementType;
 import java.util.Properties;
-
-import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
-
 import org.hibernate.search.cfg.SearchMapping;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -138,53 +163,42 @@ import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.eviction.EvictionStrategy;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.transaction.LockingMode;
+import org.infinispan.transaction.TransactionMode;
 import org.jboss.infinispan.demo.model.Task;
 
-/**
- * This is Class will be used to configure JDG Cache
- * @author tqvarnst
- *
- * DONE: Add configuration to enable indexing of title field of the Task class
- *
- */
 public class Config {
-
-    private EmbeddedCacheManager manager;
-
     @Produces
     @ApplicationScoped
-    @Default
     public EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
-        if (manager == null) {
-            GlobalConfiguration glob = new GlobalConfigurationBuilder()
-                .globalJmxStatistics().allowDuplicateDomains(true).enable() // This method enables the jmx statistics of the global configuration and allows for duplicate JMX domains
+        GlobalConfiguration glob = new GlobalConfigurationBuilder()
+                .globalJmxStatistics().allowDuplicateDomains(true).enable() // This
+                // method enables the jmx statistics of the global
+                // configuration and allows for duplicate JMX domains
                 .build();
-
-            SearchMapping mapping = new SearchMapping();
-            mapping.entity(Task.class).indexed().providedId()
-                .property("title", ElementType.METHOD).field();
-
-            Properties properties = new Properties();
-            properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
-            properties.put("default.directory_provider", "ram");
-
-            Configuration loc = new ConfigurationBuilder().jmxStatistics()
+        
+        // SearchMapping tells JDG how to index Task objects
+        SearchMapping mapping = new SearchMapping();
+        mapping.entity(Task.class).indexed().providedId()
+            .property("title", ElementType.METHOD).field();
+        
+        // Store the SearchMapping in a Properties object with a model mapping key
+        Properties properties = new Properties();
+        properties.put(org.hibernate.search.Environment.MODEL_MAPPING, mapping);
+        // Also tell JDG how to store the index
+        properties.put("default.directory_provider", "ram");
+        
+        Configuration loc = new ConfigurationBuilder().jmxStatistics()
                 .enable() // Enable JMX statistics
                 .eviction().strategy(EvictionStrategy.NONE) // Do not evic objects
+                .transaction().transactionMode(TransactionMode.TRANSACTIONAL)
+                .lockingMode(LockingMode.OPTIMISTIC)
                 .indexing()
-                    .enable()
-                    .indexLocalOnly(false)
-                    .withProperties(properties)
+                    .enable()  // Enable indexing
+                    .indexLocalOnly(false) // Support clustering 
+                    .withProperties(properties)  // Add the properties for indexing
                 .build();
-            manager = new DefaultCacheManager(glob, loc, true);
-        }
-        return manager;
-    }
-
-    @PreDestroy
-    public void cleanUp() {
-        manager.stop();
-        manager = null;
+        return new DefaultCacheManager(glob, loc, true);
     }
 }
 ----
@@ -205,6 +219,8 @@ SearchManager sm = Search.getSearchManager(cache);
 ----
 QueryBuilder qb = sm.getSearchFactory().buildQueryBuilder().forEntity(Task.class).get();
 ----
+NOTE: See the last step for a list of the proper imports to use.
++
 1. Now we can create a `Query` object from the `QueryBuilder` using the fluid api to specify which Field to match etc.
 +
 [source,java]
@@ -232,7 +248,20 @@ Note that since we are using a QueryBuilder specifically for Task.class we can s
 import org.apache.lucene.search.Query;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.infinispan.query.Search;
+import org.infinispan.query.CacheQuery;
 ----
 
 === Test and deploy
-Now you are almost finished with lab 2, you should run the Arquillian tests and then deploy the application.
+Run the Arquillian tests.
+
+1. If everything is green we are ready to deploy the application with the following command in a terminal
++
+[source,bash,indent=0]
+----
+    $ mvn package jboss-as:deploy
+----
+
+1. Test the application by opening a browser window to http://localhost:8080/mytodo
+
+1. Try the filter and notice the that it responds very fast.
+1. Congratulations you are done with lab2.

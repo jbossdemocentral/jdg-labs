@@ -1,11 +1,11 @@
 <jboss-deployment-structure>
     <deployment>
         <exclusions>
-        	<module name="org.infinispan" />
+            <module name="org.infinispan" />
         </exclusions>
         <dependencies>
-        	<module name="org.hibernate" />
-        	<module name="org.infinispan" slot="jdg-6.5" services="import"/>
+            <module name="org.hibernate" />
+            <module name="org.infinispan" slot="jdg-6.5" services="import"/>
             <module name="org.infinispan.cdi" slot="jdg-6.5" meta-inf="import"/>
             <!-- FIXME: Add dependencies to JDG Query Module  -->
         </dependencies>
