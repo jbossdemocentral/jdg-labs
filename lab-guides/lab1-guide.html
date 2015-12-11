@@ -521,7 +521,7 @@ table.CodeRay td.code>pre{padding:0}
 <li><a href="#_install_and_build_the_mock_project">4.2. Install and build the mock project</a></li>
 <li><a href="#_add_dependencies_to_the_maven_project">4.3. Add dependencies to the maven project</a></li>
 <li><a href="#_inject_a_local_cache_into_taskservice_class_and_implement_the_logic_to_findall_create_update">4.4. Inject a local Cache into TaskService class and implement the logic to findAll, create, update.</a></li>
-<li><a href="#_configure_the_cache_programatically">4.5. Configure the cache programatically</a></li>
+<li><a href="#_configure_the_cache_programmatically">4.5. Configure the cache programmatically</a></li>
 </ul>
 </li>
 </ul>
@@ -558,7 +558,7 @@ If you are looking at the PDF version and have problems with for example copying
 <p>The main challenge for Acme right now is that the round trip to a database is to expensive for the smart apps and the responsive UI interface.</p>
 </div>
 <div class="paragraph">
-<p>During a meeting with the local Red Hat Sales team, the JBoss SA suggested that Acme should use JDG to avoid the expensive round trip. Initally the JBoss SA recommends that Acme implements JDG as a side cache with minimal changes to the application.</p>
+<p>During a meeting with the local Red Hat Sales team, the JBoss SA suggested that Acme should use JDG to avoid the expensive round trip. Initially the JBoss SA recommends that Acme implements JDG as a side cache with minimal changes to the application.</p>
 </div>
 </div>
 </div>
@@ -635,7 +635,7 @@ If you are looking at the PDF version and have problems with for example copying
 <p>Start the JBoss EAP if not already started in a terminal.</p>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">$ target/jboss-eap-6.3/bin/standalone.sh</code></pre>
+<pre class="CodeRay highlight"><code data-lang="bash">$ target/jboss-eap-6.4/bin/standalone.sh</code></pre>
 </div>
 </div>
 </li>
@@ -689,43 +689,24 @@ If you are looking at the PDF version and have problems with for example copying
 <div class="sect2">
 <h3 id="_add_dependencies_to_the_maven_project">4.3. Add dependencies to the maven project</h3>
 <div class="paragraph">
-<p>In this step-by-step section we will add dependecies to the maven project so that we can later on add the code to store tasks in JDG.</p>
+<p>In this step-by-step section we will add dependencies to the maven project so that we can later on add the code to store tasks in JDG.
+Adding JDG to a project is made simple the the use of uber-jars, so that only a single dependency is required.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Open the maven pom.xml file in project/todo in an editor or IDE and add the following in the dependencyManagement section</p>
+<p>Open the maven pom.xml file in an editor or IDE and add the following dependency:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependencyManagement&gt;</span>
-    ...
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependencies&gt;</span>
     ...
     ...
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>org.infinispan<span class="tag">&lt;/groupId&gt;</span>
-        <span class="tag">&lt;artifactId&gt;</span>infinispan-bom<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>6.1.0.Final-redhat-4<span class="tag">&lt;/version&gt;</span>
-        <span class="tag">&lt;type&gt;</span>pom<span class="tag">&lt;/type&gt;</span>
-        <span class="tag">&lt;scope&gt;</span>import<span class="tag">&lt;/scope&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>infinispan-embedded<span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;scope&gt;</span>provided<span class="tag">&lt;/scope&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
-<span class="tag">&lt;/dependencyManagement&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>And add the following dependencies.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>org.infinispan<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>infinispan-core<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;scope&gt;</span>provided<span class="tag">&lt;/scope&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span>
-<span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>org.infinispan<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>infinispan-cdi<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;scope&gt;</span>provided<span class="tag">&lt;/scope&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
+<span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -735,7 +716,7 @@ If you are looking at the PDF version and have problems with for example copying
 <div class="title">Note</div>
 </td>
 <td class="content">
-We use a bom file to manage the versions of the dependencies, if you choose not to use the bom file, just specify the version directly in each dependency instead.
+We use a bom reference in the <code>parent/pom.xml</code> file to manage the versions of the dependencies, if you choose not to use the bom file, just specify the version directly in each dependency instead.
 </td>
 </tr>
 </table>
@@ -744,10 +725,10 @@ We use a bom file to manage the versions of the dependencies, if you choose not 
 <li>
 <p>Now we need fix the class loading so that we are using the correct JDG library in the container.</p>
 <div class="paragraph">
-<p>JBoss EAP ships with infinispan libraries internally, but since are using JDG 6.3 we must make sure that we use the correct infinispan libraries/modules. One solution is to ship the JDG libraries in the WEB-INF/lib folder but that makes the WAR grow allot in since effecting not only deploymenttime, but we also have to create a new release to patch or update JDG. The other solution is to use the JDG modules new as of JDG 6.3.</p>
+<p>JBoss EAP ships with infinispan libraries internally, but since are using JDG 6.5 we must make sure that we use the correct infinispan libraries/modules. One solution is to ship the JDG libraries in the WEB-INF/lib folder but that makes the WAR grow significantly.  This not only effects deployment time, but also requires that we create a new release to patch or update JDG. A better solution is to use the JDG modules new as of JDG 6.3.</p>
 </div>
 <div class="paragraph">
-<p>The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don&#8217;t have to ship them as part of the WAR file. For example if we need to patch JDG we don&#8217;t have to patch the application. We do however need to tell the cointainer (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the <code>MANIFEST.MF</code> file (can be created as part of the maven built) or by using <code>jboss-deployment-structure.xml</code>. We are going to use the later since it works better with Arquillian testing.</p>
+<p>The setup script that we run to setup the environment installs JDG as JBoss EAP modules, which means that we don&#8217;t have to ship them as part of the WAR file. Because we are using JBoss modules, if we need to patch JDG we don&#8217;t have to patch the application. We do however need to tell the container (JBoss EAP) that our application depends on these modules. This can be done via adding dependencies to the <code>MANIFEST.MF</code> file (can be created as part of the maven built) or by using <code>jboss-deployment-structure.xml</code>. We are going to use the later since it works better with Arquillian testing.</p>
 </div>
 <div class="paragraph">
 <p>Update the file called <code>jboss-deployment-structure.xml</code> under <code>src/main/webapp/WEB-INF</code> to look like this:</p>
@@ -757,8 +738,11 @@ We use a bom file to manage the versions of the dependencies, if you choose not 
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;jboss-deployment-structure&gt;</span>
     <span class="tag">&lt;deployment&gt;</span>
         <span class="tag">&lt;dependencies&gt;</span>
-            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.infinispan</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">slot</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdg-6.3</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">services</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">import</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.infinispan.cdi</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">slot</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdg-6.3</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">meta-inf</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">import</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.infinispan</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">slot</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdg-6.5</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.infinispan.cdi</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">slot</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdg-6.5</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">meta-inf</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">import</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.jgroups</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">slot</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdg-6.5</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.infinispan.persistence.jpa</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">slot</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdg-6.5</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">services</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">export</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;module</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.hibernate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
         <span class="tag">&lt;/dependencies&gt;</span>
     <span class="tag">&lt;/deployment&gt;</span>
 <span class="tag">&lt;/jboss-deployment-structure&gt;</span></code></pre>
@@ -774,7 +758,7 @@ We use a bom file to manage the versions of the dependencies, if you choose not 
 </div>
 </li>
 <li>
-<p>Make sure that the above command are succesfull and you are done with this section.</p>
+<p>Make sure that the above command are successful and you are done with this section.</p>
 </li>
 </ol>
 </div>
@@ -793,7 +777,7 @@ Cache&lt;<span class="predefined-type">Long</span>, Task&gt; cache;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You also need to add the follwing import statement if you IDE doesn&#8217;t fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")</p>
+<p>You also need to add the following import statement if you IDE does not fix that (please ignore the message: "No bean is eligible for injection to the injection point [JSR-299 §5.2.1]")</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -881,9 +865,6 @@ Cache&lt;<span class="predefined-type">Long</span>, Task&gt; cache;</code></pre>
 </div>
 </li>
 <li>
-<p>Run the JUnit test to see that everything works as expected</p>
-</li>
-<li>
 <p>Your TaskService.java implementation should look something like this:</p>
 <div class="listingblock">
 <div class="content">
@@ -959,15 +940,15 @@ Cache&lt;<span class="predefined-type">Long</span>, Task&gt; cache;</code></pre>
 </div>
 </li>
 <li>
-<p>Hold on with deploy to the application server. There are one issue with the current setup that we will solve in the next</p>
+<p>Hold on with deploy to the application server. There are one issue with the current setup that we will solve next.</p>
 </li>
 </ol>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configure_the_cache_programatically">4.5. Configure the cache programatically</h3>
+<h3 id="_configure_the_cache_programmatically">4.5. Configure the cache programmatically</h3>
 <div class="paragraph">
-<p>What just happend is that we have implemented a local cache solution where we can offload the database based on the default configuraiton. We haven&#8217;t yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.</p>
+<p>What just happened is that we have implemented a local cache solution where we can offload the database based on the default configuration. We haven&#8217;t yet configured any setting with the cache. There are allot of different possibilities to tweak the JDG library mode settings, but at the moment we will only do some basic configuration settings. Settings can be done in XML or in code. In this example we will use the code API, but later we will use the XML to configure JDG in standalone mode.</p>
 </div>
 <div class="paragraph">
 <p>Below is a code snipped that shows how to create configuration objects for the cache.</p>
@@ -987,13 +968,26 @@ DefaultCacheManager manager = <span class="keyword">new</span> DefaultCacheManag
 </div>
 </div>
 <div class="paragraph">
-<p>There are two main configuration object: <code>GlobalConfiguration</code> for the Global configuration if we use for example multiple clustred configurations and <code>Configuration</code> to hold the local configuration. In this example we allow multiple domains since otherwise we get a nasty exception saying that the cache already exists. In the local configuration we enable JMX statistics (needed for JON for example) and we set the eviction.strategy to NONE, meaning that no objects are evicted.</p>
+<p>There are two main configuration objects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GlobalConfiguration</code> is used for the global configuration attributes that are applied to all caches created from this
+cache container. For example, the network transport and security are both configured in GlobalConfiguration.</p>
+</li>
+<li>
+<p><code>Configuration</code> to hold the local configuration. In this example we allow multiple domains since otherwise we get a nasty exception saying that the cache already exists. In the local configuration we enable JMX statistics (needed for JON for example) and we set the eviction strategy to NONE, meaning that no objects are evicted.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>We can then create a cache manager object using these configuration and pass it true to also start it.</p>
 </div>
 <div class="paragraph">
-<p>Since we are using CDI in our example we can actually override the cache manager that is used when someone injects a cache with <code>@Inject Cache&lt;?,?&gt; cache;</code> like we do in TaskService class. This can be done using something called Producer in CDI. So all we have to do is create a method that looks like this:</p>
+<p>Since we are using CDI in our example we can actually override the cache manager that is used when someone injects a cache with
+<code>@Inject Cache&lt;?,?&gt; cache;</code> like we do in the TaskService class. This can be done using something called Producer in CDI.
+So all we have to do is create a method that looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1014,7 +1008,6 @@ DefaultCacheManager manager = <span class="keyword">new</span> DefaultCacheManag
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.jboss.infinispan.demo</span>;
 
-<span class="keyword">import</span> <span class="include">javax.annotation.PreDestroy</span>;
 <span class="keyword">import</span> <span class="include">javax.enterprise.context.ApplicationScoped</span>;
 <span class="keyword">import</span> <span class="include">javax.enterprise.inject.Default</span>;
 <span class="keyword">import</span> <span class="include">javax.enterprise.inject.Produces</span>;
@@ -1029,43 +1022,36 @@ DefaultCacheManager manager = <span class="keyword">new</span> DefaultCacheManag
 
 <span class="directive">public</span> <span class="type">class</span> <span class="class">Config</span> {
 
-    <span class="directive">private</span> EmbeddedCacheManager manager;
-
     <span class="annotation">@Produces</span>
     <span class="annotation">@ApplicationScoped</span>
     <span class="annotation">@Default</span>
     <span class="directive">public</span> EmbeddedCacheManager defaultEmbeddedCacheConfiguration() {
-        <span class="keyword">if</span> (manager == <span class="predefined-constant">null</span>) {
-            GlobalConfiguration glob = <span class="keyword">new</span> GlobalConfigurationBuilder()
-                    .globalJmxStatistics().allowDuplicateDomains(<span class="predefined-constant">true</span>).enable() <span class="comment">// This</span>
-                    <span class="comment">// method enables the jmx statistics of the global</span>
-                    <span class="comment">// configuration and allows for duplicate JMX domains</span>
-                    .build();
-            <span class="predefined-type">Configuration</span> loc = <span class="keyword">new</span> ConfigurationBuilder().jmxStatistics()
-                    .enable() <span class="comment">// Enable JMX statistics</span>
-                    .eviction().strategy(EvictionStrategy.NONE) <span class="comment">// Do not evic objects</span>
-                    .build();
-            manager = <span class="keyword">new</span> DefaultCacheManager(glob, loc, <span class="predefined-constant">true</span>);
-        }
-        <span class="keyword">return</span> manager;
+        GlobalConfiguration glob = <span class="keyword">new</span> GlobalConfigurationBuilder()
+                .globalJmxStatistics().allowDuplicateDomains(<span class="predefined-constant">true</span>).enable() <span class="comment">// This</span>
+                <span class="comment">// method enables the jmx statistics of the global</span>
+                <span class="comment">// configuration and allows for duplicate JMX domains</span>
+                .build();
+        <span class="predefined-type">Configuration</span> loc = <span class="keyword">new</span> ConfigurationBuilder().jmxStatistics()
+                .enable() <span class="comment">// Enable JMX statistics</span>
+                .eviction().strategy(EvictionStrategy.NONE) <span class="comment">// Do not evic objects</span>
+                .build();
+        <span class="keyword">return</span> <span class="keyword">new</span> DefaultCacheManager(glob, loc, <span class="predefined-constant">true</span>);
     }
 
-    <span class="annotation">@PreDestroy</span>
-    <span class="directive">public</span> <span class="type">void</span> cleanUp() {
-        manager.stop();
-        manager = <span class="predefined-constant">null</span>;
-    }
 }</code></pre>
 </div>
 </div>
 </li>
 <li>
-<p>Soon we are ready to deploy the application, but first we need to make sure that test passes. Before we run the test, lets check that TaskServiceTest.java add the Config class to the test, like this:</p>
+<p>We are nearly ready to deploy the application, but first we need to make sure that test passes. Before we run the test, lets check that TaskServiceTest.java add the Config class to the test, like this:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">.addClass(Config.class)</code></pre>
 </div>
 </div>
+</li>
+<li>
+<p>Execute the test and verify that the performance test that was failing is now passing.</p>
 </li>
 <li>
 <p>If everything is green we are ready to deploy the application with the following command in a terminal</p>
@@ -1089,7 +1075,7 @@ DefaultCacheManager manager = <span class="keyword">new</span> DefaultCacheManag
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-12-07 15:03:01 UTC
+Last updated 2015-12-10 09:18:21 UTC
 </div>
 </div>
 </body>
