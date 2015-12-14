@@ -67,7 +67,7 @@ $ sh init-lab.sh --lab=2
 
 1. Open the lab2 pom.xml (see below)
 1. Select the `pom.xml` tab
-1. Add the `infinispan-embeddded-query` dependency. The content of the file should look like this:
+1. Add the `infinispan-embedded-query` dependency. The content of the file should look like this:
 +
 [source,xml,indent=0]
 ----
